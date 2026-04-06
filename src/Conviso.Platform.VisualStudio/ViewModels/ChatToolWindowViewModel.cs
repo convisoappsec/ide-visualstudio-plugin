@@ -436,7 +436,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
     {
         extractorId = 0;
         string? requestId = latestCompletedRequestId;
-        if (string.IsNullOrWhiteSpace(requestId))
+        if (requestId == null || requestId.Length == 0)
         {
             return false;
         }
