@@ -1,0 +1,58 @@
+name: Build VSIX
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "src/Conviso.Platform.VisualStudio/**"
+      - "Conviso.Platform.VisualStudio.sln"
+      - ".github/workflows/build-vsix.yml"
+  pull_request:
+    paths:
+      - "src/Conviso.Platform.VisualStudio/**"
+      - "Conviso.Platform.VisualStudio.sln"
+      - ".github/workflows/build-vsix.yml"
+
+jobs:
+  build-vsix:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        run: nuget restore Conviso.Platform.VisualStudio.sln
+
+      - name: Build Release
+        run: msbuild Conviso.Platform.VisualStudio.sln /t:Build /p:Configuration=Release /p:DeployExtension=false /m
+
+      - name: Locate VSIX
+        id: locate_vsix
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem -Path "$env:GITHUB_WORKSPACE" -Filter *.vsix -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $vsix) {
+            Write-Error "No .vsix artifact was generated."
+            exit 1
+          }
+
+          "vsix_path=$($vsix.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "vsix_name=$($vsix.Name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "VSIX found at $($vsix.FullName)"
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.locate_vsix.outputs.vsix_name }}
+          path: ${{ steps.locate_vsix.outputs.vsix_path }}
+          if-no-files-found: error
