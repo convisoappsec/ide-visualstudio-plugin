@@ -34,7 +34,7 @@ jobs:
         run: nuget restore Conviso.Platform.VisualStudio.sln
 
       - name: Build Release
-        run: msbuild Conviso.Platform.VisualStudio.sln /t:Build /p:Configuration=Release /m
+        run: msbuild src\Conviso.Platform.VisualStudio\Conviso.Platform.VisualStudio.csproj /t:Build /p:Configuration=Release /m
 
       - name: Locate VSIX
         id: locate_vsix
