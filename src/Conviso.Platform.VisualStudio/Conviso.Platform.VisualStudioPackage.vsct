@@ -3,65 +3,65 @@
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
 
-  <Commands package="{743d8da8-af05-4464-85f4-e8b2ad6fe7b0}">
+  <Commands package="guidConvisoPlatformPackage">
     <Groups>
-      <Group guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" priority="0x0600">
+      <Group guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
       </Group>
     </Groups>
 
     <Buttons>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0100" priority="0x0100" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="OpenChatToolWindow" priority="0x0100" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Conviso Chat</ButtonText>
           <CommandName>ConvisoPlatform.OpenChatToolWindow</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0101" priority="0x0101" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="OpenVulnerabilitiesToolWindow" priority="0x0101" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Conviso Vulnerabilities</ButtonText>
           <CommandName>ConvisoPlatform.OpenVulnerabilitiesToolWindow</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0102" priority="0x0102" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="OpenRequirementsToolWindow" priority="0x0102" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Conviso Requirements</ButtonText>
           <CommandName>ConvisoPlatform.OpenRequirementsToolWindow</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0103" priority="0x0103" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="OpenPipelineBreaksToolWindow" priority="0x0103" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Conviso Pipeline Breaks</ButtonText>
           <CommandName>ConvisoPlatform.OpenPipelineBreaksToolWindow</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0104" priority="0x0104" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="OpenSettingsToolWindow" priority="0x0104" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Conviso Settings</ButtonText>
           <CommandName>ConvisoPlatform.OpenSettingsToolWindow</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0105" priority="0x0105" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="AnalyzeSecurityAndSuggestFix" priority="0x0105" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Analyze + Suggest Fix</ButtonText>
           <CommandName>ConvisoPlatform.AnalyzeSecurityAndSuggestFix</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0106" priority="0x0106" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="AttachSelectionToChat" priority="0x0106" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Attach Selection to Chat</ButtonText>
           <CommandName>ConvisoPlatform.AttachSelectionToChat</CommandName>
         </Strings>
       </Button>
-      <Button guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="0x0107" priority="0x0107" type="Button">
-        <Parent guid="{f3f6e9d3-1a70-4f35-9e43-16ad519fe8ea}" id="ConvisoGroup" />
+      <Button guid="guidConvisoPlatformCommandSet" id="CheckSimilarIssues" priority="0x0107" type="Button">
+        <Parent guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" />
         <Strings>
           <ButtonText>Check Similar Issues</ButtonText>
           <CommandName>ConvisoPlatform.CheckSimilarIssues</CommandName>
