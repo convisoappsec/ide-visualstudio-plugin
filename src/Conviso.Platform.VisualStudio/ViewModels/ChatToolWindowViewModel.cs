@@ -171,25 +171,8 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
                 return;
             }
 
-            const string prompt =
-                "Perform a security review of this code and return the result in this exact structure:\n\n" +
-                "1) Security findings:\n" +
-                "- List vulnerabilities and severity.\n" +
-                "- Explain why each issue is risky.\n" +
-                "- If there are no issues, write exactly: \"No security issues found.\"\n\n" +
-                "2) Suggested fix:\n" +
-                "- Provide one concrete, improved version of the code in a single fenced code block.\n" +
-                "- Keep the same language and preserve existing behavior when possible.\n" +
-                "- Include only the final code inside the fence.";
-
             string userMessage = "Analyze the selected code and suggest a fix.";
-            string request = string.Join(
-                "\n",
-                prompt,
-                string.Empty,
-                "```" + context.Language,
-                context.SelectionText,
-                "```");
+            string request = context.SelectionText;
 
             await EnsureConnectedAsync();
             Transcript.Add(new ChatTranscriptItem("user", userMessage));
@@ -578,8 +561,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
         return string.Join(
             "\n",
-            "Use the attached IDE context below when answering.",
-            "If the context is insufficient, explicitly say which file or code region should be attached next.",
+            "Attached IDE context:",
             string.Empty,
             $"Context type: {contextKind}",
             $"Reference: {referenceLabel}",
@@ -589,7 +571,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             attachedContent,
             "```",
             string.Empty,
-            "User request:",
+            "Message:",
             message);
     }
 
@@ -630,18 +612,17 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
         return string.Join(
             "\n",
-            "Use the attached selection as the reference issue.",
-            "Review the attached workspace context and identify other code regions that may have the same or an equivalent problem.",
-            "Return file path, approximate line range, why it matches, and confidence level for each occurrence.",
-            "If no similar issue is found, say that explicitly.",
-            string.Empty,
+            "Operation: similar_issues_scan",
             "Reference selection:",
+            string.Empty,
             "File: " + selectionContext.FilePath,
             "Language: " + selectionContext.Language,
             string.Empty,
             "```" + selectionContext.Language,
             selectionContext.SelectionText,
             "```",
+            string.Empty,
+            "Attached analysis and workspace context:",
             string.Empty,
             "Workspace context:",
             workspaceFiles);
