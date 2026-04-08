@@ -28,6 +28,7 @@ namespace Conviso.Platform.VisualStudio.Services.Platform
             if (!string.IsNullOrWhiteSpace(apiToken))
             {
                 request.Headers.Add("Authorization", $"Bearer {apiToken}");
+                request.Headers.Add("x-api-key", apiToken);
             }
 
             string payload = "{\"query\":" + JsonString(graphqlDocument) + ",\"variables\":" + variablesJson + "}";

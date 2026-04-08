@@ -2,6 +2,31 @@ namespace Conviso.Platform.VisualStudio.Services.Platform
 {
 internal static class GraphQlDocuments
 {
+    public const string SetupCompanies = @"
+query SetupCompanies($page: Int, $limit: Int) {
+  companies(page: $page, limit: $limit) {
+    collection {
+      id
+      label
+      active
+      configured
+    }
+  }
+}";
+
+    public const string Assets = @"
+query Assets($companyId: ID!, $limit: Int, $page: Int) {
+  assets(companyId: $companyId, limit: $limit, page: $page) {
+    collection {
+      id
+      name
+    }
+    metadata {
+      totalPages
+    }
+  }
+}";
+
     public const string IssuesList = @"
 query Issues(
   $pagination: PaginationInput!

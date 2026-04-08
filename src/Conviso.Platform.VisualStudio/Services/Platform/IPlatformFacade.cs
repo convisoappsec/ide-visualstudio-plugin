@@ -7,6 +7,10 @@ namespace Conviso.Platform.VisualStudio.Services.Platform
 {
     public interface IPlatformFacade
     {
+        Task<IReadOnlyList<AccessibleCompanyOption>> GetAccessibleCompaniesAsync(CancellationToken cancellationToken);
+
+        Task<IReadOnlyList<AssetOption>> GetAssetsAsync(string companyId, CancellationToken cancellationToken);
+
         Task<IReadOnlyList<ProjectSummary>> GetProjectsAsync(CancellationToken cancellationToken);
 
         Task<ProjectDetails> GetProjectDetailsAsync(string projectId, CancellationToken cancellationToken);
@@ -21,7 +25,7 @@ namespace Conviso.Platform.VisualStudio.Services.Platform
 
         Task UpdateActivityStatusAsync(string activityId, string status, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<VulnerabilitySummary>> GetVulnerabilitiesAsync(CancellationToken cancellationToken);
+        Task<IReadOnlyList<VulnerabilitySummary>> GetVulnerabilitiesAsync(string? companyId, string? assetId, CancellationToken cancellationToken);
 
         Task<VulnerabilityDetails> GetVulnerabilityDetailsAsync(string id, CancellationToken cancellationToken);
 

@@ -19,6 +19,102 @@ internal sealed class PlatformFacade : IPlatformFacade
         this.settingsService = settingsService;
     }
 
+    public async Task<IReadOnlyList<AccessibleCompanyOption>> GetAccessibleCompaniesAsync(CancellationToken cancellationToken)
+    {
+        string json = await apiClient.QueryAsync(
+            GraphQlDocuments.SetupCompanies,
+            SerializeVariables(new { page = 1, limit = 100 }),
+            cancellationToken);
+
+        using JsonDocument document = JsonDocument.Parse(json);
+        if (!TryGetCollection(document, "companies", out JsonElement collection))
+        {
+            return new List<AccessibleCompanyOption>();
+        }
+
+        var result = new List<AccessibleCompanyOption>();
+        foreach (JsonElement item in collection.EnumerateArray())
+        {
+            string id = item.GetPropertyOrDefault("id");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                continue;
+            }
+
+            result.Add(new AccessibleCompanyOption
+            {
+                Id = id,
+                Label = item.GetPropertyOrDefault("label"),
+                Active = item.TryGetProperty("active", out JsonElement active) && active.ValueKind == JsonValueKind.True,
+                Configured = item.TryGetProperty("configured", out JsonElement configured) && configured.ValueKind == JsonValueKind.True,
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<IReadOnlyList<AssetOption>> GetAssetsAsync(string companyId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(companyId))
+        {
+            return new List<AssetOption>();
+        }
+
+        var result = new List<AssetOption>();
+        int page = 1;
+        int totalPages = 1;
+
+        do
+        {
+            string variables = SerializeVariables(new
+            {
+                companyId,
+                page,
+                limit = 100,
+            });
+
+            string json = await apiClient.QueryAsync(GraphQlDocuments.Assets, variables, cancellationToken);
+            using JsonDocument document = JsonDocument.Parse(json);
+            if (!TryGetRoot(document, "assets", out JsonElement assetsRoot))
+            {
+                return result;
+            }
+
+            if (assetsRoot.TryGetProperty("collection", out JsonElement collection) &&
+                collection.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in collection.EnumerateArray())
+                {
+                    string id = item.GetPropertyOrDefault("id");
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        continue;
+                    }
+
+                    result.Add(new AssetOption
+                    {
+                        Id = id,
+                        Name = item.GetPropertyOrDefault("name"),
+                    });
+                }
+            }
+
+            totalPages = page;
+            if (assetsRoot.TryGetProperty("metadata", out JsonElement metadata) &&
+                metadata.TryGetProperty("totalPages", out JsonElement totalPagesElement) &&
+                totalPagesElement.TryGetInt32(out int nextTotalPages) &&
+                nextTotalPages > 0)
+            {
+                totalPages = nextTotalPages;
+            }
+
+            page += 1;
+        }
+        while (page <= totalPages);
+
+        return result;
+    }
+
     public async Task<IReadOnlyList<ProjectSummary>> GetProjectsAsync(CancellationToken cancellationToken)
     {
         string companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
@@ -233,13 +329,22 @@ internal sealed class PlatformFacade : IPlatformFacade
         await apiClient.QueryAsync(GraphQlDocuments.UpdateActivityStatus, variables, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<VulnerabilitySummary>> GetVulnerabilitiesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<VulnerabilitySummary>> GetVulnerabilitiesAsync(string? companyId, string? assetId, CancellationToken cancellationToken)
     {
-        string companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
-        if (string.IsNullOrWhiteSpace(companyId))
+        string effectiveCompanyId = string.IsNullOrWhiteSpace(companyId)
+            ? settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty)
+            : companyId;
+        if (string.IsNullOrWhiteSpace(effectiveCompanyId))
         {
             return new[] { new VulnerabilitySummary { Id = "info", Title = "Configure Company ID to load vulnerabilities.", Severity = "INFO", Status = "SETUP" } };
         }
+
+        object filters = string.IsNullOrWhiteSpace(assetId)
+            ? new { }
+            : new
+            {
+                assetIds = new[] { assetId },
+            };
 
         string variables = SerializeVariables(new
         {
@@ -248,8 +353,8 @@ internal sealed class PlatformFacade : IPlatformFacade
                 page = 1,
                 limit = 20,
             },
-            filters = new { },
-            companyId,
+            filters,
+            companyId = effectiveCompanyId,
             sortOptions = new[]
             {
                 new
@@ -394,8 +499,7 @@ internal sealed class PlatformFacade : IPlatformFacade
 
     private static bool TryGetCollection(JsonDocument document, string rootProperty, out JsonElement collection)
     {
-        if (document.RootElement.TryGetProperty("data", out JsonElement data) &&
-            data.TryGetProperty(rootProperty, out JsonElement root) &&
+        if (TryGetRoot(document, rootProperty, out JsonElement root) &&
             root.TryGetProperty("collection", out collection) &&
             collection.ValueKind == JsonValueKind.Array)
         {
@@ -403,6 +507,18 @@ internal sealed class PlatformFacade : IPlatformFacade
         }
 
         collection = default;
+        return false;
+    }
+
+    private static bool TryGetRoot(JsonDocument document, string rootProperty, out JsonElement root)
+    {
+        if (document.RootElement.TryGetProperty("data", out JsonElement data) &&
+            data.TryGetProperty(rootProperty, out root))
+        {
+            return true;
+        }
+
+        root = default;
         return false;
     }
 

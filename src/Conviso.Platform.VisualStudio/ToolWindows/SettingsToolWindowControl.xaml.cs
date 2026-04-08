@@ -9,7 +9,7 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
         public SettingsToolWindowControl(ToolWindowContext context)
         {
             InitializeComponent();
-            DataContext = new SettingsToolWindowViewModel(context.SettingsService);
+            DataContext = new SettingsToolWindowViewModel(context.SettingsService, context.PlatformFacade);
         }
     }
 }

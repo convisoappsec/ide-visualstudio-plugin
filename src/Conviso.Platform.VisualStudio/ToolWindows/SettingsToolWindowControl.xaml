@@ -16,6 +16,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -33,10 +35,19 @@
             <TextBlock Grid.Row="7" Margin="0,16,0,4" Text="Requirements Scope ID" />
             <TextBox Grid.Row="8" Text="{Binding RequirementsScopeId, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBlock Grid.Row="9" Margin="0,16,0,4" Text="Broker Endpoint" />
-            <TextBox Grid.Row="10" Text="{Binding BrokerEndpoint, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="9" Margin="0,16,0,4" Text="Accessible companies" />
+            <StackPanel Grid.Row="10">
+                <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Width="110" Command="{Binding LoadCompaniesCommand}" Content="Load Companies" />
+                    <Button Width="130" Margin="8,0,0,0" Command="{Binding ApplySelectedCompanyCommand}" Content="Use Selected Company" />
+                </StackPanel>
+            </StackPanel>
 
-            <StackPanel Grid.Row="11" Margin="0,16,0,0">
+            <TextBlock Grid.Row="11" Margin="0,16,0,4" Text="Broker Endpoint" />
+            <TextBox Grid.Row="12" Text="{Binding BrokerEndpoint, UpdateSourceTrigger=PropertyChanged}" />
+
+            <StackPanel Grid.Row="13" Margin="0,16,0,0">
                 <TextBlock Text="Broker API Key" Margin="0,0,0,4" />
                 <TextBox Text="{Binding BrokerApiKey, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Margin="0,12,0,0" Foreground="Gray" Text="Secrets are stored using the current Windows user protection." TextWrapping="Wrap" />

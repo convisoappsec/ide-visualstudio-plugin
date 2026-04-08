@@ -16,7 +16,9 @@
 
         <TextBlock FontSize="18" FontWeight="SemiBold" Text="Vulnerabilities" />
         <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,8,0,12">
-            <Button Width="100" Content="Refresh" Command="{Binding RefreshCommand}" />
+            <ComboBox Width="220" ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
+            <ComboBox Width="260" Margin="8,0,0,0" ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
+            <Button Width="100" Margin="8,0,0,0" Content="Refresh" Command="{Binding RefreshCommand}" />
             <TextBlock Margin="12,4,0,0" Foreground="Gray" Text="{Binding Status}" />
         </StackPanel>
         <DataGrid
