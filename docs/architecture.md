@@ -19,6 +19,7 @@ The first objective is structural parity with the VS Code plugin:
 - `Services`: broker, API, patching, and future credential/state services
 - `Models`: transport and view models
 - `Configuration`: option keys and defaults
+- `Infrastructure`: command helpers, observable primitives, and diagnostics logging
 
 ## Initial mapping from VS Code
 
@@ -27,6 +28,10 @@ The first objective is structural parity with the VS Code plugin:
 - `src/features/*` -> future orchestration classes under `Features/*`
 - `src/views/*` -> `ToolWindows/*` and future WPF view models
 - `src/services/localAstService.ts` -> future local scanner service for Windows shells
+
+Current parity note:
+
+- GraphQL request failures are logged to the Visual Studio ActivityLog with request and response details, mirroring the stricter diagnostics added to the VS Code extension.
 
 ## UI direction
 

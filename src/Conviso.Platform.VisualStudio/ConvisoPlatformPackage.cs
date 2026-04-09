@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Conviso.Platform.VisualStudio
 {
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [InstalledProductRegistration("Conviso Platform", "Conviso Platform integration for Visual Studio", "0.1.2")]
+    [InstalledProductRegistration("Conviso Platform", "Conviso Platform integration for Visual Studio", "0.1.3")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(ChatToolWindow))]
     [ProvideToolWindow(typeof(VulnerabilitiesToolWindow))]

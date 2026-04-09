@@ -16,6 +16,7 @@ Current scope:
 - broker client shell based on `ClientWebSocket`
 - service contracts for broker, platform API, and patching
 - architecture notes aligned with the VS Code reference plugin
+- GraphQL failure diagnostics routed to the Visual Studio ActivityLog
 
 Not implemented yet:
 
@@ -24,6 +25,7 @@ Not implemented yet:
 - vulnerability and requirement views
 - suggested patch application
 - credential persistence
+- local AST scanner integration for Windows shells
 
 ## Integration model
 
@@ -50,6 +52,7 @@ Not implemented yet:
 - Target framework: .NET Framework 4.7.2
 - This scaffold is meant to be built on Windows with the `Visual Studio extension development` workload installed.
 - The current macOS environment is sufficient to author the project files, but not to validate the VSIX end to end.
+- When API requests fail, inspect the Visual Studio ActivityLog for GraphQL request/response details.
 
 ## References
 
