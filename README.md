@@ -1,71 +1,189 @@
 # ide-visualstudio-plugin
 
-Visual Studio plugin for Conviso Platform integration.
+Visual Studio 2022 extension for Conviso Platform integration.
 
-## Status
+## What this repository is
 
-This repository now contains the initial Visual Studio 2022 extension scaffold for the Conviso Platform port.
+This repository is the Visual Studio port of the existing Conviso IDE plugin ecosystem.
+It is no longer just a blank scaffold: the extension already exposes commands, tool windows, settings persistence, GraphQL-backed views, and broker-backed chat actions.
 
-Current scope:
+What is still true is that the port has not been validated end to end on a Windows + Visual Studio environment yet. Because of that, the main risk today is not missing code structure, but unclear operator guidance and unknown runtime gaps.
 
-- VSIX project and solution structure
-- `AsyncPackage` bootstrap
-- command registration for chat, vulnerabilities, requirements, and pipeline breaks
-- chat, vulnerabilities, requirements, and pipeline-break tool windows
-- settings service and direct GraphQL API client shell
-- broker client shell based on `ClientWebSocket`
-- service contracts for broker, platform API, and patching
-- architecture notes aligned with the VS Code reference plugin
-- GraphQL failure diagnostics routed to the Visual Studio ActivityLog
+## Current scope
 
-Not implemented yet:
+Implemented in the repository:
 
-- WebSocket chat transport via `ide-broker-dotnet`
-- GraphQL/API calls
-- vulnerability and requirement views
-- suggested patch application
-- credential persistence
-- local AST scanner integration for Windows shells
+- VSIX project and solution structure for Visual Studio 2022
+- `AsyncPackage` bootstrap and command registration
+- `Conviso Settings` tool window
+- `Conviso Chat` tool window with:
+  - broker connection
+  - free-form chat
+  - attach selection
+  - analyze selected code
+  - check similar issues across the workspace
+  - apply suggested fix from the latest assistant response
+  - mark response as helpful
+- `Conviso Vulnerabilities` tool window with:
+  - company filter
+  - asset filter
+  - vulnerability list
+  - vulnerability details
+  - generate-fix action
+  - vulnerability status update
+- `Conviso Requirements` tool window with:
+  - projects list
+  - requirement list per project
+  - activities list per requirement
+  - project status update
+  - activity status update
+- `Conviso Pipeline Breaks` tool window with list and details
+- GraphQL diagnostics routed to the Visual Studio ActivityLog
+- Secrets stored with Windows user protection through the settings service
 
-## Integration model
+Known gaps and risks:
 
-- AI chat via go-drill WebSocket (`/ws`) using `ide-broker-dotnet`
-- Vulnerabilities/projects/requirements/status via direct API (GraphQL/REST)
-- Plugin stays thin: business rules remain in broker/backend services
+- no validated Windows test pass yet
+- build and installation flow has not been documented until now
+- broker compatibility still depends on the target environment
+- local AST scanner parity with the VS Code extension is not present
+- there is no automated validation in this repository for the VSIX runtime behavior
 
-## Project layout
+## Quick start
+
+### Prerequisites
+
+- Windows
+- Visual Studio 2022
+- access to a Conviso API token
+- access to a broker endpoint and API key when chat features are used
+
+### Install and open
+
+For end users and QA:
+
+1. Install the provided `.vsix` package.
+2. Open Visual Studio 2022.
+3. Open a repository or project with editable source files.
+
+For maintainers preparing a test build:
+
+1. Open `Conviso.Platform.VisualStudio.sln` in Visual Studio 2022.
+2. Restore packages if Visual Studio prompts for it.
+3. Build the solution in `Debug` or `Release`.
+4. Start the extension in the Experimental Instance with `F5`, or distribute the generated `.vsix` on Windows.
+
+Notes:
+
+- The project targets `.NET Framework 4.7.2`.
+- This repository can be edited on macOS, but the VSIX cannot be validated end to end outside Windows + Visual Studio 2022.
+
+## How to use the extension
+
+After installation, open the commands from the Visual Studio `Tools` menu:
+
+- `Conviso Chat`
+- `Conviso Vulnerabilities`
+- `Conviso Requirements`
+- `Conviso Pipeline Breaks`
+- `Conviso Settings`
+- `Analyze + Suggest Fix`
+- `Attach Selection to Chat`
+- `Check Similar Issues`
+
+### 1. Configure settings first
+
+Open `Tools > Conviso Settings` and fill:
+
+- `API Base URL`
+- `API Token`
+- `Company ID`
+- `Requirements Scope ID`
+- `Broker Endpoint`
+- `Broker API Key`
+
+Useful behavior already implemented:
+
+- `Load Companies` fetches accessible companies from the API
+- `Use Selected Company` copies the selected company into `Company ID` and `Requirements Scope ID`
+- `Save Settings` persists text values and stores secrets with Windows user protection
+- `Test API` performs a GraphQL round-trip
+- `Test Broker` attempts a WebSocket connection
+- `Use Defaults` restores the default API base URL and broker endpoint
+
+### 2. Use chat features
+
+Open `Tools > Conviso Chat`.
+
+The chat window supports:
+
+- `Connect Chat`
+- `Send Message`
+- `Attach Selection`
+- `Analyze + Suggest Fix`
+- `Check Similar Issues`
+- `Apply Suggested Fix`
+- `Mark Helpful`
+
+Expected workflow:
+
+1. Open a file and select the code you want to analyze.
+2. Use `Attach Selection` if you want the selected code added as context to the chat session.
+3. Use `Analyze + Suggest Fix` to send the current selection for analysis.
+4. Use `Check Similar Issues` to scan the workspace for similar patterns.
+5. If the assistant returns a fenced code block, use `Apply Suggested Fix` to replace the current selection after confirmation.
+
+Important behavior:
+
+- `Analyze + Suggest Fix`, `Attach Selection to Chat`, and `Check Similar Issues` are also exposed as top-level menu commands and will open the chat window automatically.
+- `Apply Suggested Fix` only works when there is a current editor selection and the assistant response contains a fenced code block.
+
+### 3. Use data views
+
+`Conviso Vulnerabilities`
+
+- filter by company and asset
+- refresh the list
+- inspect details
+- generate a fix suggestion
+- update vulnerability status
+
+`Conviso Requirements`
+
+- load projects
+- inspect project details
+- inspect requirements for a selected project
+- inspect activities for a selected requirement
+- update project status
+- update activity status
+
+`Conviso Pipeline Breaks`
+
+- load the list of pipeline break executions
+- inspect execution details for the selected row
+
+## Recommended validation flow
+
+Use the checklist in [docs/manual-validation.md](/Users/welias/welias_files/dev/ide-visualstudio-plugin/docs/manual-validation.md) before calling this port production-ready.
+
+## Troubleshooting
+
+- If API requests fail, inspect the Visual Studio ActivityLog. GraphQL request and response details are logged there.
+- If company discovery fails, verify `API Base URL` and `API Token` first.
+- If chat does not connect, verify the broker endpoint resolves to `/ws` and that the broker API key is valid.
+- If `Apply Suggested Fix` is disabled or fails, confirm that:
+  - the assistant returned a fenced code block
+  - the target file is open
+  - the intended replacement region is selected
+
+## Repository layout
 
 - `src/Conviso.Platform.VisualStudio`: Visual Studio VSIX project
-- `docs/architecture.md`: port architecture and parity plan
-
-## MVP parity target
-
-1. Streaming chat
-2. Vulnerability listing
-3. Requirement list
-4. Status update
-5. Patch application with confirmation
-
-## Build notes
-
-- Target IDE: Visual Studio 2022
-- Target framework: .NET Framework 4.7.2
-- This scaffold is meant to be built on Windows with the `Visual Studio extension development` workload installed.
-- The current macOS environment is sufficient to author the project files, but not to validate the VSIX end to end.
-- When API requests fail, inspect the Visual Studio ActivityLog for GraphQL request/response details.
+- `docs/architecture.md`: port architecture and runtime boundaries
+- `docs/manual-validation.md`: manual test checklist for Windows validation
 
 ## References
 
 - `../platform-ide-plugins/docs/ide-adapters.md`
 - `../platform-ide-plugins/docs/protocol.md`
 - `../ide-vscode-plugin/docs/architecture.md`
-
-## Repository navigation
-
-- Platform orchestrator/docs: [`platform-ide-plugins`](https://github.com/convisoappsec/platform-ide-plugins)
-- Canonical chat spec: [`ide-broker`](https://github.com/convisoappsec/ide-broker)
-- JavaScript runtime SDK: [`ide-broker-js`](https://github.com/convisoappsec/ide-broker-js)
-- VS Code plugin: [`ide-vscode-plugin`](https://github.com/convisoappsec/ide-vscode-plugin)
-- IntelliJ plugin: [`ide-intellij-plugin`](https://github.com/convisoappsec/ide-intellij-plugin)
-- Visual Studio plugin (this repo): [`ide-visualstudio-plugin`](https://github.com/convisoappsec/ide-visualstudio-plugin)
-- Eclipse plugin: [`ide-eclipse-plugin`](https://github.com/convisoappsec/ide-eclipse-plugin)
