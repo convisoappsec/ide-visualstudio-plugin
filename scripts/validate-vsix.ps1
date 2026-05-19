@@ -34,7 +34,7 @@ if ($pkgdefContent -notmatch '=\s*"\s*,\s*Menus\.ctmenu,\s*1"') {
     throw ".pkgdef does not reference Menus.ctmenu."
 }
 
-$assembly = [System.Reflection.Assembly]::ReflectionOnlyLoadFrom($dll.FullName)
+$assembly = [System.Reflection.Assembly]::LoadFrom($dll.FullName)
 $manifestNames = $assembly.GetManifestResourceNames()
 
 if ($manifestNames -notcontains "_EmptyResource.resources") {
