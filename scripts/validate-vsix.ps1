@@ -30,96 +30,45 @@ if (-not $dll) {
 }
 
 $pkgdefContent = Get-Content -LiteralPath $pkgdef.FullName -Raw
-$expectedResource = $null
-
-if ($pkgdefContent -match '=\s*"\s*,\s*Menus\.ctmenu,\s*1"') {
-    $expectedResource = "Menus.ctmenu"
-}
-elseif ($pkgdefContent -match '=\s*"\s*,\s*1,\s*1"') {
-    $expectedResource = "#1"
-}
-else {
-    throw ".pkgdef does not reference a supported menu resource entry."
+if ($pkgdefContent -notmatch '=\s*"\s*,\s*Menus\.ctmenu,\s*1"') {
+    throw ".pkgdef does not reference Menus.ctmenu."
 }
 
-Add-Type -TypeDefinition @"
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+$assembly = [System.Reflection.Assembly]::ReflectionOnlyLoadFrom($dll.FullName)
+$manifestNames = $assembly.GetManifestResourceNames()
 
-public static class ResourceInspector
-{
-    private const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002;
+if ($manifestNames -notcontains "_EmptyResource.resources") {
+    $found = if ($manifestNames.Count -gt 0) { $manifestNames -join ", " } else { "<none>" }
+    throw "Managed resource container '_EmptyResource.resources' not found. Manifest resources: $found"
+}
 
-    private delegate bool EnumResTypeProc(IntPtr hModule, IntPtr lpszType, IntPtr lParam);
-    private delegate bool EnumResNameProc(IntPtr hModule, IntPtr lpszType, IntPtr lpszName, IntPtr lParam);
+$resourceStream = $assembly.GetManifestResourceStream("_EmptyResource.resources")
+if (-not $resourceStream) {
+    throw "Failed to open _EmptyResource.resources from assembly."
+}
 
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hFile, uint dwFlags);
+$reader = New-Object System.Resources.ResourceReader($resourceStream)
+$menuResourceFound = $false
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool FreeLibrary(IntPtr hLibModule);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool EnumResourceTypes(IntPtr hModule, EnumResTypeProc lpEnumFunc, IntPtr lParam);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool EnumResourceNames(IntPtr hModule, IntPtr lpszType, EnumResNameProc lpEnumFunc, IntPtr lParam);
-
-    public static string[] GetResourceNames(string dllPath)
-    {
-        var names = new List<string>();
-        var module = LoadLibraryEx(dllPath, IntPtr.Zero, LOAD_LIBRARY_AS_DATAFILE);
-        if (module == IntPtr.Zero)
-        {
-            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "LoadLibraryEx failed.");
+try {
+    $enumerator = $reader.GetEnumerator()
+    while ($enumerator.MoveNext()) {
+        if ($enumerator.Key -eq "Menus.ctmenu" -and $enumerator.Value -is [byte[]]) {
+            $menuResourceFound = $true
+            break
         }
-
-        try
-        {
-            EnumResTypeProc typeProc = (h, typePtr, l) =>
-            {
-                EnumResNameProc nameProc = (h2, t, namePtr, l2) =>
-                {
-                    names.Add(PointerToString(namePtr));
-                    return true;
-                };
-
-                EnumResourceNames(h, typePtr, nameProc, IntPtr.Zero);
-                return true;
-            };
-
-            EnumResourceTypes(module, typeProc, IntPtr.Zero);
-        }
-        finally
-        {
-            FreeLibrary(module);
-        }
-
-        return names.ToArray();
-    }
-
-    private static string PointerToString(IntPtr ptr)
-    {
-        ulong value = unchecked((ulong)ptr.ToInt64());
-        if ((value >> 16) == 0)
-        {
-            return "#" + (value & 0xFFFF);
-        }
-
-        return Marshal.PtrToStringUni(ptr) ?? string.Empty;
     }
 }
-"@
+finally {
+    $reader.Close()
+    $resourceStream.Close()
+}
 
-$resourceNames = [ResourceInspector]::GetResourceNames($dll.FullName)
-
-if ($resourceNames -notcontains $expectedResource) {
-    $found = if ($resourceNames.Count -gt 0) { $resourceNames -join ", " } else { "<none>" }
-    throw "Expected menu resource '$expectedResource' not embedded in DLL. Resources found: $found"
+if (-not $menuResourceFound) {
+    throw "Menus.ctmenu byte[] entry not found inside _EmptyResource.resources."
 }
 
 Write-Host "Validated VSIX: $VsixPath"
 Write-Host "pkgdef: $($pkgdef.Name)"
 Write-Host "dll: $($dll.Name)"
-Write-Host "native resource: $expectedResource"
+Write-Host "managed resource: _EmptyResource.resources -> Menus.ctmenu"
