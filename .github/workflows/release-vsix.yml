@@ -43,6 +43,10 @@ jobs:
           "vsix_name=$($vsix.Name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "VSIX found at $($vsix.FullName)"
 
+      - name: Validate VSIX contents
+        shell: pwsh
+        run: .\scripts\validate-vsix.ps1 -VsixPath "${{ steps.locate_vsix.outputs.vsix_path }}"
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
