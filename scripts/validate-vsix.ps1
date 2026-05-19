@@ -1,9 +1,9 @@
-$ErrorActionPreference = "Stop"
-
 param(
     [Parameter(Mandatory = $true)]
     [string]$VsixPath
 )
+
+$ErrorActionPreference = "Stop"
 
 if (-not (Test-Path -LiteralPath $VsixPath)) {
     throw "VSIX not found: $VsixPath"
