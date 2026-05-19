@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -15,6 +16,7 @@
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <UseCodebase>true</UseCodebase>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <RootNamespace>Conviso.Platform.VisualStudio</RootNamespace>
     <AssemblyName>Conviso.Platform.VisualStudio</AssemblyName>
   </PropertyGroup>
@@ -36,4 +38,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VSSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>
