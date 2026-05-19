@@ -30,8 +30,16 @@ if (-not $dll) {
 }
 
 $pkgdefContent = Get-Content -LiteralPath $pkgdef.FullName -Raw
-if ($pkgdefContent -notmatch "Menus\.ctmenu") {
-    throw ".pkgdef does not reference Menus.ctmenu."
+$expectedResource = $null
+
+if ($pkgdefContent -match '=\s*"\s*,\s*Menus\.ctmenu,\s*1"') {
+    $expectedResource = "Menus.ctmenu"
+}
+elseif ($pkgdefContent -match '=\s*"\s*,\s*1,\s*1"') {
+    $expectedResource = "#1"
+}
+else {
+    throw ".pkgdef does not reference a supported menu resource entry."
 }
 
 Add-Type -TypeDefinition @"
@@ -106,12 +114,12 @@ public static class ResourceInspector
 
 $resourceNames = [ResourceInspector]::GetResourceNames($dll.FullName)
 
-if ($resourceNames -notcontains "Menus.ctmenu") {
+if ($resourceNames -notcontains $expectedResource) {
     $found = if ($resourceNames.Count -gt 0) { $resourceNames -join ", " } else { "<none>" }
-    throw "Menus.ctmenu not embedded in DLL. Resources found: $found"
+    throw "Expected menu resource '$expectedResource' not embedded in DLL. Resources found: $found"
 }
 
 Write-Host "Validated VSIX: $VsixPath"
 Write-Host "pkgdef: $($pkgdef.Name)"
 Write-Host "dll: $($dll.Name)"
-Write-Host "native resource: Menus.ctmenu"
+Write-Host "native resource: $expectedResource"
