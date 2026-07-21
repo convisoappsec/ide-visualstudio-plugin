@@ -50,6 +50,7 @@
                 x:Name="TranscriptList"
                 MinHeight="100"
                 HorizontalContentAlignment="Stretch"
+                ScrollViewer.CanContentScroll="False"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
                 Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"

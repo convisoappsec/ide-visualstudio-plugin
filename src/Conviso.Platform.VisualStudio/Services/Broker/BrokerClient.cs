@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +15,9 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
         private ClientWebSocket? socket;
         private CancellationTokenSource? receiveLoopCancellation;
         private TaskCompletionSource<bool>? authenticationCompletionSource;
+        private readonly object exclusiveRequestsLock = new object();
+        private readonly HashSet<string> exclusiveRequestIds = new HashSet<string>(StringComparer.Ordinal);
+        private event Action<BrokerEvent>? InternalEventReceived;
 
         public event Action<BrokerEvent>? EventReceived;
 
@@ -111,6 +115,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
             string requestId = CreateRequestId("req");
             var responseCompletionSource = new TaskCompletionSource<BrokerEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+            BrokerEvent? completedEvent = null;
 
             void HandleEvent(BrokerEvent brokerEvent)
             {
@@ -119,13 +124,14 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                     return;
                 }
 
-                if (brokerEvent.Type == "autofix_complete" || brokerEvent.Type == "autofix_suggested")
+                if (brokerEvent.Type == "analysis_complete")
                 {
+                    completedEvent = brokerEvent;
                     responseCompletionSource.TrySetResult(brokerEvent);
                     return;
                 }
 
-                if (brokerEvent.Type == "autofix_error" || brokerEvent.Type == "error")
+                if (brokerEvent.Type == "analysis_error" || brokerEvent.Type == "error")
                 {
                     responseCompletionSource.TrySetException(new InvalidOperationException(
                         string.IsNullOrWhiteSpace(brokerEvent.Content)
@@ -134,7 +140,11 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                 }
             }
 
-            EventReceived += HandleEvent;
+            InternalEventReceived += HandleEvent;
+            lock (exclusiveRequestsLock)
+            {
+                exclusiveRequestIds.Add(requestId);
+            }
 
             try
             {
@@ -142,11 +152,16 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                     socket,
                     new
                     {
-                        type = "request_autofix",
+                        type = "analyze_code",
                         request_id = requestId,
                         payload = new
                         {
-                            finding_id = findingId,
+                            code = string.Join(
+                                "\n",
+                                "Generate a secure remediation for the following Conviso Platform vulnerability.",
+                                "Explain the risk and provide the corrected code in a fenced code block when possible.",
+                                "Vulnerability ID: " + findingId),
+                            language = "text",
                         },
                     },
                     cancellationToken);
@@ -163,7 +178,13 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                     try
                     {
                         BrokerEvent response = await responseCompletionSource.Task;
-                        return ExtractAutoFixResult(response.RawPayload);
+                        AutoFixResult result = ExtractAutoFixResult(response.RawPayload);
+                        if (string.IsNullOrWhiteSpace(result.PrUrl) && string.IsNullOrWhiteSpace(result.Summary))
+                        {
+                            result.Summary = response.Content;
+                        }
+
+                        return result;
                     }
                     catch (TaskCanceledException) when (timeoutCancellation.IsCancellationRequested)
                     {
@@ -173,7 +194,26 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             }
             finally
             {
-                EventReceived -= HandleEvent;
+                lock (exclusiveRequestsLock)
+                {
+                    exclusiveRequestIds.Remove(requestId);
+                }
+
+                InternalEventReceived -= HandleEvent;
+
+                // Autofix chunks stay isolated to avoid flooding the chat UI, but
+                // the completed response is published once so users can review it.
+                if (completedEvent != null)
+                {
+                    try
+                    {
+                        EventReceived?.Invoke(completedEvent);
+                    }
+                    catch
+                    {
+                        // A UI subscriber must not turn a completed fix into a failed request.
+                    }
+                }
             }
         }
 
@@ -354,7 +394,18 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                 return;
             }
 
-            EventReceived?.Invoke(brokerEvent);
+            InternalEventReceived?.Invoke(brokerEvent);
+
+            bool isExclusiveRequest;
+            lock (exclusiveRequestsLock)
+            {
+                isExclusiveRequest = exclusiveRequestIds.Contains(brokerEvent.RequestId);
+            }
+
+            if (!isExclusiveRequest)
+            {
+                EventReceived?.Invoke(brokerEvent);
+            }
         }
 
         private static BrokerEvent ParseEvent(string raw)
