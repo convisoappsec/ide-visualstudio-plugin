@@ -176,12 +176,20 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         ResetRequirementDetails();
         ResetActivityDetails();
 
-        foreach (ProjectSummary item in await platformFacade.GetProjectsAsync(CancellationToken.None))
+        try
         {
-            Projects.Add(item);
-        }
+            foreach (ProjectSummary item in await platformFacade.GetProjectsAsync(CancellationToken.None))
+            {
+                Projects.Add(item);
+            }
 
-        Status = $"Loaded {Projects.Count} project(s)";
+            Status = $"Loaded {Projects.Count} project(s)";
+        }
+        catch (System.Exception error)
+        {
+            Status = "Unable to load projects: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load projects: " + error);
+        }
     }
 
     private async Task LoadProjectAsync(ProjectSummary? project)
@@ -201,7 +209,17 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         }
 
         ProjectCommandStatus = "Loading project details...";
-        ProjectDetails details = await platformFacade.GetProjectDetailsAsync(project.Id, CancellationToken.None);
+        ProjectDetails details;
+        try
+        {
+            details = await platformFacade.GetProjectDetailsAsync(project.Id, CancellationToken.None);
+        }
+        catch (System.Exception error)
+        {
+            ProjectCommandStatus = "Unable to load project: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load project details: " + error);
+            return;
+        }
         ProjectLabel = details.Label;
         ProjectStatus = details.Status;
         ProjectType = details.ProjectTypeLabel;

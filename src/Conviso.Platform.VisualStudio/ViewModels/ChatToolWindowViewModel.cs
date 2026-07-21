@@ -48,6 +48,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         ApplySuggestedFixCommand = new AsyncDelegateCommand(ApplySuggestedFixAsync, CanApplySuggestedFix);
         MarkResponseHelpfulCommand = new AsyncDelegateCommand(MarkResponseHelpfulAsync, CanMarkResponseHelpful);
         ClearAttachedContextCommand = new AsyncDelegateCommand(ClearAttachedContextAsync, () => attachedContext != null);
+        ClearChatCommand = new AsyncDelegateCommand(ClearChatAsync, () => Transcript.Count > 0);
         brokerClient.EventReceived += OnBrokerEventReceived;
     }
 
@@ -86,6 +87,8 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
     public AsyncDelegateCommand MarkResponseHelpfulCommand { get; }
 
     public AsyncDelegateCommand ClearAttachedContextCommand { get; }
+
+    public AsyncDelegateCommand ClearChatCommand { get; }
 
     public ObservableCollection<ChatTranscriptItem> Transcript { get; }
 
@@ -316,6 +319,18 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
+    private Task ClearChatAsync()
+    {
+        Transcript.Clear();
+        requestExtractorIdMap.Clear();
+        latestCompletedRequestId = null;
+        Status = "Chat cleared";
+        ClearChatCommand.RaiseCanExecuteChanged();
+        ApplySuggestedFixCommand.RaiseCanExecuteChanged();
+        MarkResponseHelpfulCommand.RaiseCanExecuteChanged();
+        return Task.CompletedTask;
+    }
+
     private async Task DisconnectAsync()
     {
         try
@@ -532,8 +547,8 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         await brokerClient.ConnectAsync(
             new BrokerConnectionOptions
             {
-                Endpoint = settingsService.GetString(ConvisoOptions.BrokerEndpointKey, ConvisoOptions.DefaultBrokerEndpoint),
-                ApiKey = settingsService.GetSecret(ConvisoOptions.BrokerApiKeyKey, string.Empty),
+                Endpoint = ConvisoOptions.DefaultBrokerEndpoint,
+                ApiKey = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty),
             },
             CancellationToken.None);
         Status = "Connected";

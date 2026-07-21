@@ -32,10 +32,21 @@ internal abstract class OpenToolWindowCommandBase<TToolWindow> where TToolWindow
     {
         ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
         {
-            ToolWindowPane window = await package.ShowToolWindowAsync(typeof(TToolWindow), 0, true, package.DisposalToken);
-            if (window == null)
+            try
             {
-                throw new InvalidOperationException($"Unable to open tool window {typeof(TToolWindow).Name}.");
+                ToolWindowPane window = await package.ShowToolWindowAsync(typeof(TToolWindow), 0, true, package.DisposalToken);
+                if (window == null)
+                {
+                    throw new InvalidOperationException($"Unable to open tool window {typeof(TToolWindow).Name}.");
+                }
+            }
+            catch (OperationCanceledException) when (package.DisposalToken.IsCancellationRequested)
+            {
+                // Visual Studio is shutting down.
+            }
+            catch (Exception error)
+            {
+                Infrastructure.DiagnosticsLogger.LogError($"Unable to open {typeof(TToolWindow).Name}: {error}");
             }
         });
     }

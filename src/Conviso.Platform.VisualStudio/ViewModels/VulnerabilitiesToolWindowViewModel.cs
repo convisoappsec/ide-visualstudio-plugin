@@ -33,7 +33,6 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         Assets = new ObservableCollection<AssetOption>();
         Details = new VulnerabilityDetailsViewModel(platformFacade, settingsService, brokerClient);
         RefreshCommand = new AsyncDelegateCommand(RefreshAsync);
-        _ = LoadFilterOptionsAsync();
     }
 
     public ObservableCollection<VulnerabilitySummary> Items { get; }
@@ -87,15 +86,28 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
     {
         Status = "Loading vulnerabilities...";
         Items.Clear();
-        foreach (var item in await platformFacade.GetVulnerabilitiesAsync(
-            SelectedCompany?.Id,
-            string.IsNullOrWhiteSpace(SelectedAsset?.Id) ? null : SelectedAsset?.Id,
-            CancellationToken.None))
+        try
         {
-            Items.Add(item);
-        }
+            foreach (var item in await platformFacade.GetVulnerabilitiesAsync(
+                SelectedCompany?.Id,
+                string.IsNullOrWhiteSpace(SelectedAsset?.Id) ? null : SelectedAsset?.Id,
+                CancellationToken.None))
+            {
+                Items.Add(item);
+            }
 
-        Status = $"Loaded {Items.Count} item(s)";
+            Status = $"Loaded {Items.Count} item(s)";
+        }
+        catch (System.Exception error)
+        {
+            Status = "Unable to load vulnerabilities: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load vulnerabilities: " + error);
+        }
+    }
+
+    public Task InitializeAsync()
+    {
+        return LoadFilterOptionsAsync();
     }
 
     private async Task LoadFilterOptionsAsync()

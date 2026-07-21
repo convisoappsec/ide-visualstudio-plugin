@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 using System.Windows.Controls;
 using Conviso.Platform.VisualStudio.Infrastructure;
 using Conviso.Platform.VisualStudio.ViewModels;
@@ -18,6 +19,17 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
                 context.EditorContextService,
                 context.PatchService);
             DataContext = viewModel;
+            viewModel.Transcript.CollectionChanged += OnTranscriptChanged;
+        }
+
+        private void OnTranscriptChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (viewModel.Transcript.Count > 0)
+            {
+                TranscriptList.ScrollIntoView(viewModel.Transcript[viewModel.Transcript.Count - 1]);
+            }
+
+            viewModel.ClearChatCommand.RaiseCanExecuteChanged();
         }
 
         public Task RunAnalyzeSecurityAndSuggestFixAsync()

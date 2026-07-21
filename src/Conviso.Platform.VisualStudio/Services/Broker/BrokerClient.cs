@@ -264,18 +264,34 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             receiveLoopCancellation?.Dispose();
             receiveLoopCancellation = null;
 
-            if (socket == null)
+            ClientWebSocket? activeSocket = socket;
+            socket = null;
+            if (activeSocket == null)
             {
                 return;
             }
 
-            if (socket.State == WebSocketState.Open)
+            try
             {
-                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "disconnect", cancellationToken);
+                if (activeSocket.State == WebSocketState.Open)
+                {
+                    await activeSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "disconnect", cancellationToken);
+                }
             }
-
-            socket.Dispose();
-            socket = null;
+            catch (WebSocketException) when (activeSocket.State == WebSocketState.Aborted ||
+                                              activeSocket.State == WebSocketState.Closed)
+            {
+                // An aborted socket is already disconnected; cleanup is enough.
+            }
+            catch (InvalidOperationException) when (activeSocket.State == WebSocketState.Aborted ||
+                                                    activeSocket.State == WebSocketState.Closed)
+            {
+                // CloseAsync cannot be used after the receive loop aborts the socket.
+            }
+            finally
+            {
+                activeSocket.Dispose();
+            }
         }
 
         private async Task ReceiveLoopAsync(ClientWebSocket activeSocket, CancellationToken cancellationToken)

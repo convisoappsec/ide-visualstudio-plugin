@@ -36,6 +36,12 @@ namespace Conviso.Platform.VisualStudio.Infrastructure
                 RaiseCanExecuteChanged();
                 await execute();
             }
+            catch (Exception error)
+            {
+                // ICommand.Execute is async void by contract. Never let an exception
+                // escape to WPF's dispatcher, because Visual Studio hosts us in-proc.
+                DiagnosticsLogger.LogError("Command failed: " + error);
+            }
             finally
             {
                 isExecuting = false;

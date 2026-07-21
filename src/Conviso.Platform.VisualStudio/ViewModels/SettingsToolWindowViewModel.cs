@@ -30,12 +30,12 @@ namespace Conviso.Platform.VisualStudio.ViewModels
         {
             this.settingsService = settingsService;
             this.platformFacade = platformFacade;
-            apiBaseUrl = settingsService.GetString(ConvisoOptions.ApiBaseUrlKey, ConvisoOptions.DefaultApiBaseUrl);
+            apiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
             apiToken = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty);
             companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
             requirementsScopeId = settingsService.GetString(ConvisoOptions.RequirementsScopeIdKey, string.Empty);
-            brokerEndpoint = settingsService.GetString(ConvisoOptions.BrokerEndpointKey, ConvisoOptions.DefaultBrokerEndpoint);
-            brokerApiKey = settingsService.GetSecret(ConvisoOptions.BrokerApiKeyKey, string.Empty);
+            brokerEndpoint = ConvisoOptions.DefaultBrokerEndpoint;
+            brokerApiKey = apiToken;
             Companies = new ObservableCollection<AccessibleCompanyOption>();
             SaveCommand = new AsyncDelegateCommand(SaveAsync);
             TestApiCommand = new AsyncDelegateCommand(TestApiAsync);
@@ -81,16 +81,14 @@ namespace Conviso.Platform.VisualStudio.ViewModels
 
         private Task SaveAsync()
         {
-            string normalizedApiBaseUrl = NormalizeApiBaseUrl(ApiBaseUrl);
-            string normalizedBrokerEndpoint = NormalizeBrokerEndpoint(BrokerEndpoint);
+            string normalizedApiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
+            string normalizedBrokerEndpoint = ConvisoOptions.DefaultBrokerEndpoint;
             string normalizedCompanyId = CompanyId.Trim();
             string normalizedRequirementsScopeId = string.IsNullOrWhiteSpace(RequirementsScopeId)
                 ? normalizedCompanyId
                 : RequirementsScopeId.Trim();
             string normalizedApiToken = ApiToken.Trim();
-            string normalizedBrokerApiKey = string.IsNullOrWhiteSpace(BrokerApiKey)
-                ? normalizedApiToken
-                : BrokerApiKey.Trim();
+            string normalizedBrokerApiKey = normalizedApiToken;
 
             ApiBaseUrl = normalizedApiBaseUrl;
             BrokerEndpoint = normalizedBrokerEndpoint;
@@ -98,19 +96,16 @@ namespace Conviso.Platform.VisualStudio.ViewModels
             RequirementsScopeId = normalizedRequirementsScopeId;
             BrokerApiKey = normalizedBrokerApiKey;
 
-            settingsService.SetString(ConvisoOptions.ApiBaseUrlKey, normalizedApiBaseUrl);
             settingsService.SetSecret(ConvisoOptions.ApiTokenKey, normalizedApiToken);
             settingsService.SetString(ConvisoOptions.CompanyIdKey, normalizedCompanyId);
             settingsService.SetString(ConvisoOptions.RequirementsScopeIdKey, normalizedRequirementsScopeId);
-            settingsService.SetString(ConvisoOptions.BrokerEndpointKey, normalizedBrokerEndpoint);
-            settingsService.SetSecret(ConvisoOptions.BrokerApiKeyKey, normalizedBrokerApiKey);
             Status = "Settings saved. Secrets are stored with Windows user protection.";
             return Task.CompletedTask;
         }
 
         private async Task TestApiAsync()
         {
-            string normalizedApiBaseUrl = NormalizeApiBaseUrl(ApiBaseUrl);
+            string normalizedApiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
             string normalizedApiToken = ApiToken.Trim();
             using var httpClient = new HttpClient();
             using var request = new HttpRequestMessage(HttpMethod.Post, normalizedApiBaseUrl.TrimEnd('/') + "/graphql");
@@ -156,8 +151,8 @@ namespace Conviso.Platform.VisualStudio.ViewModels
                 await brokerClient.ConnectAsync(
                     new BrokerConnectionOptions
                     {
-                        Endpoint = NormalizeBrokerEndpoint(BrokerEndpoint),
-                        ApiKey = BrokerApiKey.Trim(),
+                        Endpoint = ConvisoOptions.DefaultBrokerEndpoint,
+                        ApiKey = ApiToken.Trim(),
                     },
                     CancellationToken.None);
                 Status = "Broker connection successful.";

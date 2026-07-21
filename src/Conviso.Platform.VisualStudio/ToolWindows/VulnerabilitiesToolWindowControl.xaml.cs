@@ -13,7 +13,14 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
             InitializeComponent();
             viewModel = new VulnerabilitiesToolWindowViewModel(context.PlatformFacade, context.SettingsService, context.BrokerClient);
             DataContext = viewModel;
-            Loaded += async (_, __) => await viewModel.RefreshAsync();
+            Loaded += OnLoaded;
+        }
+
+        private async void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Loaded -= OnLoaded;
+            try { await viewModel.InitializeAsync(); }
+            catch (System.Exception error) { DiagnosticsLogger.LogError("Unable to load vulnerabilities: " + error); }
         }
     }
 }

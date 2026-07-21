@@ -21,9 +21,8 @@ namespace Conviso.Platform.VisualStudio.Services.Platform
 
         public async Task<string> QueryAsync(string graphqlDocument, string variablesJson, CancellationToken cancellationToken)
         {
-            string apiBaseUrl = settingsService.GetString(ConvisoOptions.ApiBaseUrlKey, ConvisoOptions.DefaultApiBaseUrl);
             string apiToken = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty);
-            string endpoint = $"{apiBaseUrl.TrimEnd('/')}/graphql";
+            string endpoint = ConvisoOptions.DefaultApiBaseUrl + "/graphql";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Add("Accept", "application/json");

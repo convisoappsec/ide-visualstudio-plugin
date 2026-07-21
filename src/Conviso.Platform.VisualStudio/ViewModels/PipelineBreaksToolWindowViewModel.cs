@@ -69,12 +69,19 @@ internal sealed class PipelineBreaksToolWindowViewModel : ObservableObject
         Items.Clear();
         SelectedItem = null;
         ResetDetails();
-        foreach (PipelineBreakSummary item in await platformFacade.GetPipelineBreaksAsync(CancellationToken.None))
+        try
         {
-            Items.Add(item);
+            foreach (PipelineBreakSummary item in await platformFacade.GetPipelineBreaksAsync(CancellationToken.None))
+            {
+                Items.Add(item);
+            }
+            Status = $"Loaded {Items.Count} item(s)";
         }
-
-        Status = $"Loaded {Items.Count} item(s)";
+        catch (System.Exception error)
+        {
+            Status = "Unable to load pipeline breaks: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load pipeline breaks: " + error);
+        }
     }
 
     private async Task LoadDetailsAsync(PipelineBreakSummary? item)
@@ -86,7 +93,17 @@ internal sealed class PipelineBreaksToolWindowViewModel : ObservableObject
         }
 
         DetailCommandStatus = "Loading pipeline break details...";
-        PipelineBreakDetails details = await platformFacade.GetPipelineBreakDetailsAsync(item.Id, CancellationToken.None);
+        PipelineBreakDetails details;
+        try
+        {
+            details = await platformFacade.GetPipelineBreakDetailsAsync(item.Id, CancellationToken.None);
+        }
+        catch (System.Exception error)
+        {
+            DetailCommandStatus = "Unable to load details: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load pipeline break details: " + error);
+            return;
+        }
         DetailStatus = details.Status;
         DetailExecutionDate = details.ExecutionDate;
         DetailTriggeredBy = details.TriggeredBy;

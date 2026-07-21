@@ -13,7 +13,14 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
             InitializeComponent();
             viewModel = new RequirementsToolWindowViewModel(context.PlatformFacade);
             DataContext = viewModel;
-            Loaded += async (_, __) => await viewModel.RefreshAsync();
+            Loaded += OnLoaded;
+        }
+
+        private async void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Loaded -= OnLoaded;
+            try { await viewModel.RefreshAsync(); }
+            catch (System.Exception error) { DiagnosticsLogger.LogError("Unable to load requirements: " + error); }
         }
     }
 }

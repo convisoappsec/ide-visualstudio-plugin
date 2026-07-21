@@ -351,18 +351,10 @@ internal sealed class PlatformFacade : IPlatformFacade
             pagination = new
             {
                 page = 1,
-                limit = 20,
+                perPage = 20,
             },
             filters,
             companyId = effectiveCompanyId,
-            sortOptions = new[]
-            {
-                new
-                {
-                    field = "updatedAt",
-                    direction = "DESC",
-                },
-            },
         });
         string json = await apiClient.QueryAsync(GraphQlDocuments.IssuesList, variables, cancellationToken);
 
