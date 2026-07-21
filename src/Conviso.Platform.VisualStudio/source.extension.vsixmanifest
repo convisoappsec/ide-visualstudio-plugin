@@ -4,6 +4,7 @@
     <Identity Id="Conviso.Platform.VisualStudio" Version="0.1.4" Language="en-US" Publisher="Conviso Application Security" />
     <DisplayName>Conviso Platform</DisplayName>
     <Description xml:space="preserve">Conviso Platform integration for Visual Studio.</Description>
+    <Icon>Resources\pluginIcon.png</Icon>
   </Metadata>
   <Installation ExtensionType="VSSDK+VisualStudio.Extensibility">
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
