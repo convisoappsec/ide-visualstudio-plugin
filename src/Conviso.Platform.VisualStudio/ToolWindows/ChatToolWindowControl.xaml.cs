@@ -10,6 +10,8 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
 {
     public partial class ChatToolWindowControl : UserControl
     {
+        private const double MinimumContentHeight = 480;
+        private const double VerticalContentMargin = 24;
         private readonly ChatToolWindowViewModel viewModel;
 
         public ChatToolWindowControl(ToolWindowContext context)
@@ -38,6 +40,14 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
         {
             TranscriptList.UpdateLayout();
             FindVisualChild<ScrollViewer>(TranscriptList)?.ScrollToEnd();
+        }
+
+        private void OnWindowScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Above the minimum, the star-sized transcript follows the viewport.
+            // Below it, the content remains fixed and the outer viewer starts scrolling.
+            double availableContentHeight = System.Math.Max(0, e.NewSize.Height - VerticalContentMargin);
+            LayoutRoot.Height = System.Math.Max(MinimumContentHeight, availableContentHeight);
         }
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

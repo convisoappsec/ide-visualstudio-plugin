@@ -40,12 +40,12 @@
     </Style>
     <Style TargetType="ComboBox">
         <Setter Property="MinHeight" Value="24" />
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ComboBoxBackgroundKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.WindowKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.WindowTextKey}}" />
         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ComboBoxBorderKey}}" />
     </Style>
     <Style TargetType="ComboBoxItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.DropDownBackgroundKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.WindowKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.WindowTextKey}}" />
     </Style>
     <Style TargetType="ListBox">
@@ -75,6 +75,24 @@
     <Style TargetType="TabItem">
         <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabGradientKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabTextKey}}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border
+                        x:Name="TabBorder"
+                        Padding="12,6"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabBorderKey}}"
+                        BorderThickness="1,1,1,0">
+                        <ContentPresenter
+                            ContentSource="Header"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabMouseOverTextKey}}" />

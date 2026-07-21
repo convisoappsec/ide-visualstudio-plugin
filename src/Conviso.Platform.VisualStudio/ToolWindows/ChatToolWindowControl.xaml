@@ -6,7 +6,12 @@
     Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
     Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}">
     <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="ToolWindowStyles.xaml" /></ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
-    <Grid Margin="12">
+    <ScrollViewer
+        x:Name="WindowScrollViewer"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        SizeChanged="OnWindowScrollViewerSizeChanged">
+    <Grid x:Name="LayoutRoot" Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -85,4 +90,5 @@
                 Content="Send Message" />
         </Grid>
     </Grid>
+    </ScrollViewer>
 </UserControl>
