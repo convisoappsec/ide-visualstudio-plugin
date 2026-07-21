@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using System.Collections.Specialized;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Conviso.Platform.VisualStudio.Infrastructure;
 using Conviso.Platform.VisualStudio.ViewModels;
 
@@ -26,10 +28,37 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
         {
             if (viewModel.Transcript.Count > 0)
             {
-                TranscriptList.ScrollIntoView(viewModel.Transcript[viewModel.Transcript.Count - 1]);
+                ScrollTranscriptToEnd();
             }
 
             viewModel.ClearChatCommand.RaiseCanExecuteChanged();
+        }
+
+        private void ScrollTranscriptToEnd()
+        {
+            TranscriptList.UpdateLayout();
+            FindVisualChild<ScrollViewer>(TranscriptList)?.ScrollToEnd();
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int index = 0; index < childrenCount; index++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T match)
+                {
+                    return match;
+                }
+
+                T? nestedMatch = FindVisualChild<T>(child);
+                if (nestedMatch != null)
+                {
+                    return nestedMatch;
+                }
+            }
+
+            return null;
         }
 
         public Task RunAnalyzeSecurityAndSuggestFixAsync()

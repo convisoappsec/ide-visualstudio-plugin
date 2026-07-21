@@ -40,13 +40,13 @@
     </Style>
     <Style TargetType="ComboBox">
         <Setter Property="MinHeight" Value="24" />
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ControlOutlineKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ComboBoxBackgroundKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.WindowTextKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ComboBoxBorderKey}}" />
     </Style>
     <Style TargetType="ComboBoxItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.DropDownBackgroundKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.WindowTextKey}}" />
     </Style>
     <Style TargetType="ListBox">
         <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
@@ -63,9 +63,9 @@
         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ControlOutlineKey}}" />
     </Style>
     <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ControlOutlineKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.GridHeadingBackgroundKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.GridHeadingTextKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.GridLineKey}}" />
     </Style>
     <Style TargetType="TabControl">
         <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
@@ -73,7 +73,16 @@
         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:VsBrushes.ControlOutlineKey}}" />
     </Style>
     <Style TargetType="TabItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabGradientKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabTextKey}}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabMouseOverTextKey}}" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabSelectedTabKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTabSelectedTextKey}}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>
