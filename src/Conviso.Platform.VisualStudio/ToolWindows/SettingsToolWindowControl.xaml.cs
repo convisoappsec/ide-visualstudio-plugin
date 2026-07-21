@@ -6,10 +6,22 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
 {
     public partial class SettingsToolWindowControl : UserControl
     {
+        private readonly SettingsToolWindowViewModel viewModel;
+
         public SettingsToolWindowControl(ToolWindowContext context)
         {
             InitializeComponent();
-            DataContext = new SettingsToolWindowViewModel(context.SettingsService, context.PlatformFacade);
+            viewModel = new SettingsToolWindowViewModel(context.SettingsService, context.PlatformFacade);
+            DataContext = viewModel;
+            ApiTokenPasswordBox.Password = viewModel.ApiToken;
+        }
+
+        private void OnApiTokenPasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is SettingsToolWindowViewModel currentViewModel)
+            {
+                currentViewModel.ApiToken = ApiTokenPasswordBox.Password;
+            }
         }
     }
 }

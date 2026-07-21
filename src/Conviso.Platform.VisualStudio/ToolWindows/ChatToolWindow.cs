@@ -6,7 +6,7 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
     {
         public ChatToolWindow() : base(null)
         {
-            Caption = "Conviso Platform";
+            Caption = "AI Autonomous AppSec";
             Content = new ChatToolWindowControl(ConvisoPlatformPackage.Instance!.ToolWindowContext);
         }
     }

@@ -14,15 +14,10 @@
     <Grid x:Name="LayoutRoot" Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock
-            Style="{StaticResource PageTitle}"
-            Text="Conviso Platform" />
-
-        <StackPanel Grid.Row="1" Margin="0,8,0,16">
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Style="{StaticResource StatusText}" Text="{Binding Status}" />
             <WrapPanel Margin="0,8,0,0">
                 <Button Command="{Binding ConnectCommand}" Content="Connect Chat" />
@@ -42,7 +37,7 @@
             </Border>
         </StackPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" MinHeight="80" />
                 <RowDefinition Height="12" />
