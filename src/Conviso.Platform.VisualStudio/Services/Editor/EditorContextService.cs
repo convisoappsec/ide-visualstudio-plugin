@@ -14,6 +14,7 @@ namespace Conviso.Platform.VisualStudio.Services.Editor
     {
         private const int MaxWorkspaceFiles = 20;
         private const int MaxWorkspaceCharacters = 50000;
+        private const int MaxEditorContextCharacters = 12000;
         private readonly AsyncPackage package;
 
         public EditorContextService(AsyncPackage package)
@@ -50,21 +51,35 @@ namespace Conviso.Platform.VisualStudio.Services.Editor
                 return null;
             }
 
-            EditPoint startPoint = textDocument.StartPoint.CreateEditPoint();
-            string documentText = startPoint.GetText(textDocument.EndPoint);
-
             string selectionText = string.Empty;
-            if (textDocument.Selection != null && !textDocument.Selection.IsEmpty)
+            string documentText = string.Empty;
+            try
             {
-                selectionText = textDocument.Selection.Text ?? string.Empty;
+                TextSelection? selection = textDocument.Selection;
+                if (selection != null && !selection.IsEmpty)
+                {
+                    selectionText = Truncate(selection.Text?.Trim() ?? string.Empty, MaxEditorContextCharacters);
+                }
+                else
+                {
+                    EditPoint startPoint = textDocument.StartPoint.CreateEditPoint();
+                    documentText = Truncate(
+                        startPoint.GetText(textDocument.EndPoint).Trim(),
+                        MaxEditorContextCharacters);
+                }
+            }
+            catch (Exception error)
+            {
+                Infrastructure.DiagnosticsLogger.LogError("Unable to capture active editor context: " + error);
+                return null;
             }
 
             return new EditorContextSnapshot
             {
                 FilePath = filePath,
                 Language = language,
-                SelectionText = selectionText.Trim(),
-                DocumentText = documentText.Trim(),
+                SelectionText = selectionText,
+                DocumentText = documentText,
             };
         }
 
@@ -92,6 +107,17 @@ namespace Conviso.Platform.VisualStudio.Services.Editor
             }
 
             string extension = Path.GetExtension(reference.FilePath ?? string.Empty);
+            return await Task.Run(
+                () => CollectWorkspaceContext(rootPath, extension, reference.FilePath ?? string.Empty, cancellationToken),
+                cancellationToken);
+        }
+
+        private static WorkspaceContextSnapshot CollectWorkspaceContext(
+            string rootPath,
+            string extension,
+            string referenceFilePath,
+            CancellationToken cancellationToken)
+        {
             var result = new WorkspaceContextSnapshot
             {
                 RootPath = rootPath,
@@ -102,7 +128,7 @@ namespace Conviso.Platform.VisualStudio.Services.Editor
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (string.Equals(filePath, reference.FilePath, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(filePath, referenceFilePath, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

@@ -42,7 +42,7 @@ internal abstract class OpenToolWindowCommandBase<TToolWindow> where TToolWindow
             }
             catch (OperationCanceledException) when (package.DisposalToken.IsCancellationRequested)
             {
-                // Visual Studio is shutting down.
+                
             }
             catch (Exception error)
             {

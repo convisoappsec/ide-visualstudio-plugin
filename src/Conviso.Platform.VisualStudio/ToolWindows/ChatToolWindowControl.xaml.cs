@@ -1,9 +1,12 @@
 using System.Threading.Tasks;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Conviso.Platform.VisualStudio.Infrastructure;
+using Conviso.Platform.VisualStudio.Models;
 using Conviso.Platform.VisualStudio.ViewModels;
 
 namespace Conviso.Platform.VisualStudio.ToolWindows
@@ -13,6 +16,7 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
         private const double MinimumContentHeight = 480;
         private const double VerticalContentMargin = 24;
         private readonly ChatToolWindowViewModel viewModel;
+        private readonly DispatcherTimer transcriptScrollTimer;
 
         public ChatToolWindowControl(ToolWindowContext context)
         {
@@ -23,23 +27,60 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
                 context.EditorContextService,
                 context.PatchService);
             DataContext = viewModel;
+            transcriptScrollTimer = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = System.TimeSpan.FromMilliseconds(75),
+            };
+            transcriptScrollTimer.Tick += OnTranscriptScrollTimerTick;
             viewModel.Transcript.CollectionChanged += OnTranscriptChanged;
         }
 
         private void OnTranscriptChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (viewModel.Transcript.Count > 0)
+            if (e.OldItems != null)
             {
-                ScrollTranscriptToEnd();
+                foreach (ChatTranscriptItem item in e.OldItems)
+                {
+                    item.PropertyChanged -= OnTranscriptItemPropertyChanged;
+                }
             }
+
+            if (e.NewItems != null)
+            {
+                foreach (ChatTranscriptItem item in e.NewItems)
+                {
+                    item.PropertyChanged += OnTranscriptItemPropertyChanged;
+                }
+            }
+
+            ScheduleTranscriptScroll();
 
             viewModel.ClearChatCommand.RaiseCanExecuteChanged();
         }
 
         private void ScrollTranscriptToEnd()
         {
-            TranscriptList.UpdateLayout();
             FindVisualChild<ScrollViewer>(TranscriptList)?.ScrollToEnd();
+        }
+
+        private void OnTranscriptItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ChatTranscriptItem.Content))
+            {
+                ScheduleTranscriptScroll();
+            }
+        }
+
+        private void ScheduleTranscriptScroll()
+        {
+            transcriptScrollTimer.Stop();
+            transcriptScrollTimer.Start();
+        }
+
+        private void OnTranscriptScrollTimerTick(object sender, System.EventArgs e)
+        {
+            transcriptScrollTimer.Stop();
+            ScrollTranscriptToEnd();
         }
 
         private void OnWindowScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)

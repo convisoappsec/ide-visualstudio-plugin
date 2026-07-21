@@ -56,7 +56,7 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         {
             if (SetProperty(ref selectedItem, value))
             {
-                _ = Details.LoadAsync(value);
+                _ = LoadDetailsSafelyAsync(value);
             }
         }
     }
@@ -108,6 +108,19 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
     public Task InitializeAsync()
     {
         return LoadFilterOptionsAsync();
+    }
+
+    private async Task LoadDetailsSafelyAsync(VulnerabilitySummary? item)
+    {
+        try
+        {
+            await Details.LoadAsync(item);
+        }
+        catch (System.Exception error)
+        {
+            Status = "Unable to load vulnerability details: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load vulnerability details: " + error);
+        }
     }
 
     private async Task LoadFilterOptionsAsync()

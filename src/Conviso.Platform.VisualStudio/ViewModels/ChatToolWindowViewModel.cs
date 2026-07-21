@@ -359,8 +359,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
                 var last = Transcript.LastOrDefault();
                 if (last != null && last.Role == "assistant")
                 {
-                    Transcript.Remove(last);
-                    Transcript.Add(new ChatTranscriptItem("assistant", last.Content + brokerEvent.Content));
+                    last.Content += brokerEvent.Content;
                 }
                 else
                 {
@@ -413,10 +412,17 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             return;
         }
 
-        ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
+        _ = ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            UpdateUi();
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                UpdateUi();
+            }
+            catch (System.Exception error)
+            {
+                DiagnosticsLogger.LogError("Unable to update chat UI from broker event: " + error);
+            }
         });
     }
 

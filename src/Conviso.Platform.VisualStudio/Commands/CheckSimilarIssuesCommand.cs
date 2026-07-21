@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.Design;
+using System.Threading;
 using System.Threading.Tasks;
 using Conviso.Platform.VisualStudio.ToolWindows;
 using Microsoft.VisualStudio.Shell;
@@ -9,6 +10,7 @@ namespace Conviso.Platform.VisualStudio.Commands
     internal sealed class CheckSimilarIssuesCommand
     {
         private readonly AsyncPackage package;
+        private int isExecuting;
 
         private CheckSimilarIssuesCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
@@ -25,12 +27,32 @@ namespace Conviso.Platform.VisualStudio.Commands
 
         private void Execute(object? sender, EventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
+            if (Interlocked.Exchange(ref isExecuting, 1) != 0)
             {
-                ToolWindowPane window = await package.ShowToolWindowAsync(typeof(ChatToolWindow), 0, true, package.DisposalToken);
-                if (window?.Content is ChatToolWindowControl control)
+                return;
+            }
+
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
+            {
+                try
                 {
-                    await control.RunCheckSimilarIssuesAsync();
+                    ToolWindowPane window = await package.ShowToolWindowAsync(typeof(ChatToolWindow), 0, true, package.DisposalToken);
+                    if (window?.Content is ChatToolWindowControl control)
+                    {
+                        await control.RunCheckSimilarIssuesAsync();
+                    }
+                }
+                catch (OperationCanceledException) when (package.DisposalToken.IsCancellationRequested)
+                {
+                    
+                }
+                catch (Exception error)
+                {
+                    Infrastructure.DiagnosticsLogger.LogError("Check Similar Issues failed: " + error);
+                }
+                finally
+                {
+                    Volatile.Write(ref isExecuting, 0);
                 }
             });
         }

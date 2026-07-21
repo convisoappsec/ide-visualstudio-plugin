@@ -39,7 +39,11 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
             await socket.ConnectAsync(new Uri(endpoint), cancellationToken);
             receiveLoopCancellation = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveLoopAsync(socket, receiveLoopCancellation.Token), receiveLoopCancellation.Token);
+            ClientWebSocket activeSocket = socket;
+            CancellationToken receiveToken = receiveLoopCancellation.Token;
+            _ = Task.Run(
+                () => RunReceiveLoopSafelyAsync(activeSocket, receiveToken),
+                receiveToken);
 
             string authRequestId = CreateRequestId("auth");
             await SendMessageAsync(
@@ -358,6 +362,23 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
                 string raw = builder.ToString();
                 ProcessIncomingMessage(raw);
+            }
+        }
+
+        private async Task RunReceiveLoopSafelyAsync(ClientWebSocket activeSocket, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await ReceiveLoopAsync(activeSocket, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                
+            }
+            catch (Exception error)
+            {
+                authenticationCompletionSource?.TrySetException(error);
+                Infrastructure.DiagnosticsLogger.LogError("Chat receive loop stopped: " + error);
             }
         }
 

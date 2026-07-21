@@ -66,7 +66,7 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         {
             if (SetProperty(ref selectedProject, value))
             {
-                _ = LoadProjectAsync(value);
+                _ = LoadProjectSafelyAsync(value);
             }
         }
     }
@@ -78,7 +78,7 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         {
             if (SetProperty(ref selectedRequirement, value))
             {
-                _ = LoadRequirementAsync(value);
+                _ = LoadRequirementSafelyAsync(value);
             }
         }
     }
@@ -162,6 +162,33 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
     public AsyncDelegateCommand UpdateProjectStatusCommand { get; }
 
     public AsyncDelegateCommand UpdateActivityStatusCommand { get; }
+
+    private async Task LoadProjectSafelyAsync(ProjectSummary? project)
+    {
+        try
+        {
+            await LoadProjectAsync(project);
+        }
+        catch (System.Exception error)
+        {
+            ProjectCommandStatus = "Unable to load project: " + error.Message;
+            Status = ProjectCommandStatus;
+            DiagnosticsLogger.LogError("Unable to load project: " + error);
+        }
+    }
+
+    private async Task LoadRequirementSafelyAsync(RequirementSummary? requirement)
+    {
+        try
+        {
+            await LoadRequirementAsync(requirement);
+        }
+        catch (System.Exception error)
+        {
+            Status = "Unable to load requirement: " + error.Message;
+            DiagnosticsLogger.LogError("Unable to load requirement: " + error);
+        }
+    }
 
     public async Task RefreshAsync()
     {
