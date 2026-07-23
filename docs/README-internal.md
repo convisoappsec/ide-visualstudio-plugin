@@ -25,7 +25,7 @@ Implemented in the repository:
   - apply suggested fix from the latest assistant response
   - mark response as helpful
 - `Conviso Vulnerabilities` tool window with:
-  - company filter
+  - globally configured company
   - asset filter
   - vulnerability list
   - vulnerability details
@@ -95,21 +95,17 @@ After installation, open the commands from the Visual Studio `Tools` menu:
 
 Open `Tools > Conviso Settings` and fill:
 
-- `API Base URL`
 - `API Token`
-- `Company ID`
-- `Requirements Scope ID`
-- `Broker Endpoint`
-- `Broker API Key`
+- `Company` on the `Scope` tab
 
 Useful behavior already implemented:
 
-- `Load Companies` fetches accessible companies from the API
-- `Use Selected Company` copies the selected company into `Company ID` and `Requirements Scope ID`
-- `Save Settings` persists text values and stores secrets with Windows user protection
+- opening `Scope` fetches accessible companies from the API
+- the first accessible company is selected automatically on first configuration
+- changing `Company` persists the global company immediately
+- `Save Settings` stores the API token with Windows user protection
 - `Test API` performs a GraphQL round-trip
 - `Test Broker` attempts a WebSocket connection
-- `Use Defaults` restores the default API base URL and broker endpoint
 
 ### 2. Use chat features
 
@@ -142,7 +138,7 @@ Important behavior:
 
 `Conviso Vulnerabilities`
 
-- filter by company and asset
+- use the globally configured company and filter by asset
 - refresh the list
 - inspect details
 - generate a fix suggestion

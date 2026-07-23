@@ -14,6 +14,7 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
             viewModel = new SettingsToolWindowViewModel(context.SettingsService, context.PlatformFacade);
             DataContext = viewModel;
             ApiTokenPasswordBox.Password = viewModel.ApiToken;
+            SettingsTabs.SelectionChanged += OnSettingsTabSelectionChanged;
         }
 
         private void OnApiTokenPasswordChanged(object sender, System.Windows.RoutedEventArgs e)
@@ -21,6 +22,14 @@ namespace Conviso.Platform.VisualStudio.ToolWindows
             if (DataContext is SettingsToolWindowViewModel currentViewModel)
             {
                 currentViewModel.ApiToken = ApiTokenPasswordBox.Password;
+            }
+        }
+
+        private async void OnSettingsTabSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.Source == SettingsTabs && ScopeTab.IsSelected)
+            {
+                await viewModel.LoadCompaniesAsync();
             }
         }
     }

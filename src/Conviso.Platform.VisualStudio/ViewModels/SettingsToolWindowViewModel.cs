@@ -19,11 +19,11 @@ namespace Conviso.Platform.VisualStudio.ViewModels
         private readonly IPlatformFacade platformFacade;
         private string apiBaseUrl;
         private string apiToken;
-        private string companyId;
-        private string requirementsScopeId;
         private string brokerEndpoint;
         private string brokerApiKey;
         private AccessibleCompanyOption? selectedCompany;
+        private bool isLoadingCompanies;
+        private bool isInitializingCompanySelection;
         private string status = "Ready";
 
         public SettingsToolWindowViewModel(ISettingsService settingsService, IPlatformFacade platformFacade)
@@ -32,23 +32,16 @@ namespace Conviso.Platform.VisualStudio.ViewModels
             this.platformFacade = platformFacade;
             apiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
             apiToken = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty);
-            companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
-            requirementsScopeId = settingsService.GetString(ConvisoOptions.RequirementsScopeIdKey, string.Empty);
             brokerEndpoint = ConvisoOptions.DefaultBrokerEndpoint;
             brokerApiKey = apiToken;
             Companies = new ObservableCollection<AccessibleCompanyOption>();
             SaveCommand = new AsyncDelegateCommand(SaveAsync);
             TestApiCommand = new AsyncDelegateCommand(TestApiAsync);
             TestBrokerCommand = new AsyncDelegateCommand(TestBrokerAsync);
-            ResetDefaultsCommand = new AsyncDelegateCommand(ResetDefaultsAsync);
-            LoadCompaniesCommand = new AsyncDelegateCommand(LoadCompaniesAsync);
-            ApplySelectedCompanyCommand = new AsyncDelegateCommand(ApplySelectedCompanyAsync, () => SelectedCompany != null);
         }
 
         public string ApiBaseUrl { get => apiBaseUrl; set => SetProperty(ref apiBaseUrl, value); }
         public string ApiToken { get => apiToken; set => SetProperty(ref apiToken, value); }
-        public string CompanyId { get => companyId; set => SetProperty(ref companyId, value); }
-        public string RequirementsScopeId { get => requirementsScopeId; set => SetProperty(ref requirementsScopeId, value); }
         public string BrokerEndpoint { get => brokerEndpoint; set => SetProperty(ref brokerEndpoint, value); }
         public string BrokerApiKey { get => brokerApiKey; set => SetProperty(ref brokerApiKey, value); }
         public string Status { get => status; set => SetProperty(ref status, value); }
@@ -62,7 +55,13 @@ namespace Conviso.Platform.VisualStudio.ViewModels
             {
                 if (SetProperty(ref selectedCompany, value))
                 {
-                    ApplySelectedCompanyCommand.RaiseCanExecuteChanged();
+                    if (!isInitializingCompanySelection &&
+                        value != null &&
+                        !string.IsNullOrWhiteSpace(value.Id))
+                    {
+                        settingsService.SetString(ConvisoOptions.CompanyIdKey, value.Id);
+                        Status = $"Company {value.DisplayLabel} selected and saved.";
+                    }
                 }
             }
         }
@@ -73,32 +72,18 @@ namespace Conviso.Platform.VisualStudio.ViewModels
 
         public AsyncDelegateCommand TestBrokerCommand { get; }
 
-        public AsyncDelegateCommand ResetDefaultsCommand { get; }
-
-        public AsyncDelegateCommand LoadCompaniesCommand { get; }
-
-        public AsyncDelegateCommand ApplySelectedCompanyCommand { get; }
-
         private Task SaveAsync()
         {
             string normalizedApiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
             string normalizedBrokerEndpoint = ConvisoOptions.DefaultBrokerEndpoint;
-            string normalizedCompanyId = CompanyId.Trim();
-            string normalizedRequirementsScopeId = string.IsNullOrWhiteSpace(RequirementsScopeId)
-                ? normalizedCompanyId
-                : RequirementsScopeId.Trim();
             string normalizedApiToken = ApiToken.Trim();
             string normalizedBrokerApiKey = normalizedApiToken;
 
             ApiBaseUrl = normalizedApiBaseUrl;
             BrokerEndpoint = normalizedBrokerEndpoint;
-            CompanyId = normalizedCompanyId;
-            RequirementsScopeId = normalizedRequirementsScopeId;
             BrokerApiKey = normalizedBrokerApiKey;
 
             settingsService.SetSecret(ConvisoOptions.ApiTokenKey, normalizedApiToken);
-            settingsService.SetString(ConvisoOptions.CompanyIdKey, normalizedCompanyId);
-            settingsService.SetString(ConvisoOptions.RequirementsScopeIdKey, normalizedRequirementsScopeId);
             Status = "Settings saved. Secrets are stored with Windows user protection.";
             return Task.CompletedTask;
         }
@@ -167,56 +152,62 @@ namespace Conviso.Platform.VisualStudio.ViewModels
             }
         }
 
-        private Task ResetDefaultsAsync()
+        public async Task LoadCompaniesAsync()
         {
-            ApiBaseUrl = ConvisoOptions.DefaultApiBaseUrl;
-            BrokerEndpoint = ConvisoOptions.DefaultBrokerEndpoint;
-            if (string.IsNullOrWhiteSpace(RequirementsScopeId))
+            if (isLoadingCompanies)
             {
-                RequirementsScopeId = CompanyId.Trim();
+                return;
             }
 
-            Status = "Defaults restored for API and broker endpoint.";
-            return Task.CompletedTask;
-        }
+            string savedApiToken = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty);
+            if (string.IsNullOrWhiteSpace(savedApiToken))
+            {
+                Companies.Clear();
+                SelectedCompany = null;
+                Status = "Save an API token before selecting a company.";
+                return;
+            }
 
-        private async Task LoadCompaniesAsync()
-        {
             try
             {
-                await SaveAsync();
+                isLoadingCompanies = true;
                 Status = "Loading accessible companies...";
                 var companies = await platformFacade.GetAccessibleCompaniesAsync(CancellationToken.None);
                 Companies.Clear();
-                foreach (AccessibleCompanyOption company in companies)
+                foreach (AccessibleCompanyOption company in companies.OrderBy(item => item.Label))
                 {
                     Companies.Add(company);
                 }
 
-                string currentCompanyId = CompanyId.Trim();
-                SelectedCompany = Companies.FirstOrDefault(item => item.Id == currentCompanyId) ?? Companies.FirstOrDefault();
+                string currentCompanyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
+                AccessibleCompanyOption? companyToSelect =
+                    Companies.FirstOrDefault(item => item.Id == currentCompanyId) ??
+                    (string.IsNullOrWhiteSpace(currentCompanyId) ? Companies.FirstOrDefault() : null);
+
+                isInitializingCompanySelection = true;
+                SelectedCompany = companyToSelect;
+                isInitializingCompanySelection = false;
+
+                if (companyToSelect != null && string.IsNullOrWhiteSpace(currentCompanyId))
+                {
+                    settingsService.SetString(ConvisoOptions.CompanyIdKey, companyToSelect.Id);
+                }
+
                 Status = Companies.Count == 0
                     ? "No accessible companies returned for this API key."
-                    : $"Loaded {Companies.Count} accessible compan{(Companies.Count == 1 ? "y" : "ies")}.";
+                    : companyToSelect == null
+                        ? "The saved company is no longer accessible. Select another company."
+                        : $"Company {companyToSelect.DisplayLabel} selected.";
             }
             catch (Exception error)
             {
                 Status = "Company discovery failed: " + error.Message;
             }
-        }
-
-        private Task ApplySelectedCompanyAsync()
-        {
-            if (SelectedCompany == null)
+            finally
             {
-                Status = "Select a company first.";
-                return Task.CompletedTask;
+                isInitializingCompanySelection = false;
+                isLoadingCompanies = false;
             }
-
-            CompanyId = SelectedCompany.Id;
-            RequirementsScopeId = SelectedCompany.Id;
-            Status = $"Selected company {SelectedCompany.DisplayLabel}. Save settings to persist it.";
-            return Task.CompletedTask;
         }
 
         private static string NormalizeApiBaseUrl(string value)

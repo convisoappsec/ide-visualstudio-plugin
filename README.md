@@ -11,7 +11,7 @@ Analyze code, review security vulnerabilities, receive AI-powered remediation gu
   When an AI response includes a suggested code block, apply it directly to the current editor selection after reviewing and confirming the change.
 
 - **Review vulnerabilities from Conviso Platform.**  
-  Filter vulnerabilities by company and asset, inspect their details, request an AI-generated fix, and update vulnerability status from Visual Studio.
+  Filter vulnerabilities by asset for the configured company, inspect their details, request an AI-generated fix, and update vulnerability status from Visual Studio.
 
 - **Track projects, security requirements, and activities.**  
   Browse projects and their requirements, inspect related activities, and update project or activity status.
@@ -48,9 +48,8 @@ If you do not have an account, sign up or start a free trial:
 
 1. In Visual Studio, open **Tools > Conviso Settings**.
 2. On the **Platform API** tab, enter your **API Token**.
-3. Select **Load Companies**, choose an accessible company, and select **Use Selected Company**.
-4. If necessary, review the **Company ID** and **Requirements Scope ID** on the **Scope** tab.
-5. Select **Save Settings**.
+3. Select **Save Settings**.
+4. Open the **Scope** tab and choose the company to use. Accessible companies load automatically, and the selection is saved immediately.
 
 You can use **Test API** and **Test Chat** to validate the credentials. The API token is stored using Windows user-level data protection. The Platform API and AI service endpoints are configured by the extension and do not require manual URLs or separate broker credentials.
 
@@ -64,7 +63,7 @@ Open extension features from Visual Studio's **Tools** menu:
 - **Conviso Vulnerabilities** — reviews and manages vulnerabilities from Conviso Platform.
 - **Conviso Requirements** — browses projects, requirements, and related activities.
 - **Conviso Pipeline Breaks** — investigates security gate executions and their failure reasons.
-- **Conviso Settings** — configures the API token, company, and requirements scope.
+- **Conviso Settings** — configures the API token and company.
 
 The **Tools** menu also provides direct editor actions:
 
@@ -91,7 +90,7 @@ The extension always asks for confirmation before replacing the current selectio
 ### Manage vulnerabilities
 
 1. Open **Tools > Conviso Vulnerabilities**.
-2. Choose a company and optionally filter by asset.
+2. Optionally filter by asset.
 3. Select a vulnerability to inspect its title, description, severity, status, and asset.
 4. Use **Generate Fix** to request an AI-assisted remediation result.
 5. Enter a permitted status and use **Update Status** to update the finding in Conviso Platform.

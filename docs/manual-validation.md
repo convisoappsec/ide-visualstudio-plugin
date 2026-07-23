@@ -48,29 +48,24 @@ Expected result:
 
 1. Open `Tools > Conviso Settings`.
 2. Verify all fields render:
-   - API Base URL
    - API Token
-   - Company ID
-   - Requirements Scope ID
-   - Accessible companies
-   - Broker Endpoint
-   - Broker API Key
-3. Click `Use Defaults`.
-4. Enter valid API and broker credentials.
-5. Click `Save Settings`.
-6. Click `Test API`.
-7. Click `Load Companies`.
-8. Select a company and click `Use Selected Company`.
-9. Click `Save Settings` again.
-10. Click `Test Broker`.
+   - Company
+3. Enter a valid API token.
+4. Click `Save Settings`.
+5. Click `Test API`.
+6. Open the `Scope` tab.
+7. Confirm that accessible companies load automatically.
+8. If this is the first configuration, confirm that the first company is selected automatically.
+9. Select another company, close the settings window, reopen it, and return to `Scope`.
+10. Click `Test Chat`.
 
 Expected result:
 
 - status messages change coherently after each action
 - accessible companies load for a valid token
-- selected company fills both `Company ID` and `Requirements Scope ID`
+- the selected company is saved immediately and restored when settings are reopened
 - API test succeeds or returns a clear permission error
-- broker test succeeds or returns a clear connection error
+- chat test succeeds or returns a clear connection error
 
 ## Chat window
 
@@ -108,14 +103,13 @@ Expected result:
 ## Vulnerabilities window
 
 1. Open `Tools > Conviso Vulnerabilities`.
-2. Confirm the company filter loads.
-3. Change the company filter.
-4. Change the asset filter.
-5. Click `Refresh`.
-6. Select a vulnerability row.
-7. Review the details panel.
-8. Click `Generate Fix`.
-9. Enter a new status and click `Update Status`.
+2. Confirm that data uses the company configured in `Conviso Settings > Scope`.
+3. Change the asset filter.
+4. Click `Refresh`.
+5. Select a vulnerability row.
+6. Review the details panel.
+7. Click `Generate Fix`.
+8. Enter a new status and click `Update Status`.
 
 Expected result:
 

@@ -8,7 +8,6 @@ namespace Conviso.Platform.VisualStudio.Configuration
 
         public const string ApiBaseUrlKey = "Conviso.ApiBaseUrl";
         public const string CompanyIdKey = "Conviso.CompanyId";
-        public const string RequirementsScopeIdKey = "Conviso.RequirementsScopeId";
         public const string BrokerEndpointKey = "Conviso.BrokerEndpoint";
         public const string ApiTokenKey = "Conviso.ApiToken";
         public const string BrokerApiKeyKey = "Conviso.BrokerApiKey";

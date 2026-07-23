@@ -15,7 +15,7 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
     private readonly IPlatformFacade platformFacade;
     private readonly ISettingsService settingsService;
     private readonly IBrokerClient brokerClient;
-    private AccessibleCompanyOption? selectedCompany;
+    private string companyId = string.Empty;
     private AssetOption? selectedAsset;
     private VulnerabilitySummary? selectedItem;
     private string status = "Ready";
@@ -29,15 +29,12 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         this.settingsService = settingsService;
         this.brokerClient = brokerClient;
         Items = new ObservableCollection<VulnerabilitySummary>();
-        Companies = new ObservableCollection<AccessibleCompanyOption>();
         Assets = new ObservableCollection<AssetOption>();
         Details = new VulnerabilityDetailsViewModel(platformFacade, settingsService, brokerClient);
         RefreshCommand = new AsyncDelegateCommand(RefreshAsync);
     }
 
     public ObservableCollection<VulnerabilitySummary> Items { get; }
-
-    public ObservableCollection<AccessibleCompanyOption> Companies { get; }
 
     public ObservableCollection<AssetOption> Assets { get; }
 
@@ -61,19 +58,6 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         }
     }
 
-    public AccessibleCompanyOption? SelectedCompany
-    {
-        get => selectedCompany;
-        set
-        {
-            if (SetProperty(ref selectedCompany, value))
-            {
-                PersistSelectedCompany(value);
-                _ = LoadAssetsForSelectedCompanyAsync();
-            }
-        }
-    }
-
     public AssetOption? SelectedAsset
     {
         get => selectedAsset;
@@ -88,8 +72,15 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         Items.Clear();
         try
         {
+            string currentCompanyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
+            if (companyId != currentCompanyId)
+            {
+                companyId = currentCompanyId;
+                await LoadAssetsForSelectedCompanyAsync();
+            }
+
             foreach (var item in await platformFacade.GetVulnerabilitiesAsync(
-                SelectedCompany?.Id,
+                companyId,
                 string.IsNullOrWhiteSpace(SelectedAsset?.Id) ? null : SelectedAsset?.Id,
                 CancellationToken.None))
             {
@@ -125,29 +116,8 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
 
     private async Task LoadFilterOptionsAsync()
     {
-        try
-        {
-            var companies = await platformFacade.GetAccessibleCompaniesAsync(CancellationToken.None);
-            Companies.Clear();
-            foreach (AccessibleCompanyOption company in companies.OrderBy(item => item.Label))
-            {
-                Companies.Add(company);
-            }
-
-            string currentCompanyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
-            SelectedCompany = Companies.FirstOrDefault(item => item.Id == currentCompanyId) ?? Companies.FirstOrDefault();
-        }
-        catch
-        {
-            string currentCompanyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
-            if (!string.IsNullOrWhiteSpace(currentCompanyId))
-            {
-                Companies.Clear();
-                Companies.Add(new AccessibleCompanyOption { Id = currentCompanyId, Label = currentCompanyId });
-                SelectedCompany = Companies[0];
-            }
-        }
-
+        companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
+        await LoadAssetsForSelectedCompanyAsync();
         await RefreshAsync();
     }
 
@@ -157,14 +127,14 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         Assets.Add(new AssetOption { Id = string.Empty, Name = "All assets" });
         SelectedAsset = Assets[0];
 
-        if (SelectedCompany == null)
+        if (string.IsNullOrWhiteSpace(companyId))
         {
             return;
         }
 
         try
         {
-            var assets = await platformFacade.GetAssetsAsync(SelectedCompany.Id, CancellationToken.None);
+            var assets = await platformFacade.GetAssetsAsync(companyId, CancellationToken.None);
             foreach (AssetOption asset in assets.OrderBy(item => item.Name))
             {
                 Assets.Add(asset);
@@ -176,15 +146,5 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         }
     }
 
-    private void PersistSelectedCompany(AccessibleCompanyOption? company)
-    {
-        if (company == null || string.IsNullOrWhiteSpace(company.Id))
-        {
-            return;
-        }
-
-        settingsService.SetString(ConvisoOptions.CompanyIdKey, company.Id);
-        settingsService.SetString(ConvisoOptions.RequirementsScopeIdKey, company.Id);
-    }
 }
 }

@@ -22,7 +22,6 @@
 
         <TextBlock Style="{StaticResource PageTitle}" Text="Vulnerabilities" />
         <WrapPanel Grid.Row="1" Margin="0,0,0,8">
-            <ComboBox MinWidth="180" Margin="0,0,8,8" ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
             <ComboBox MinWidth="200" Margin="0,0,8,8" ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
             <Button Content="Refresh" Command="{Binding RefreshCommand}" />
             <TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}" />
