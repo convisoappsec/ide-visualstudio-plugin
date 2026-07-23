@@ -70,23 +70,22 @@ Expected result:
 ## Chat window
 
 1. Open `Tools > Conviso Chat`.
-2. Click `Connect Chat`.
-3. Send a plain message.
+2. Send a plain message without connecting manually.
+3. Confirm that `Thinking...` appears centered between the transcript and message input while the response is pending, then changes to an empty reserved line.
 4. Open a code file, select a snippet, and click `Attach Selection`.
 5. Click `Analyze + Suggest Fix`.
 6. Click `Check Similar Issues`.
 7. If a response contains a fenced code block, select the target code and click `Apply Suggested Fix`.
 8. Click `Mark Helpful`.
-9. Click `Disconnect`.
 
 Expected result:
 
-- connection status changes to connected
+- the chat connects automatically when an action needs the broker
 - transcript shows user and assistant messages
+- the transient `Thinking...` indicator is empty when no response is pending without shifting the input
 - attach-selection updates the context summary
 - analyze and similarity actions append responses instead of failing silently
 - apply-fix asks for confirmation and replaces only the current selection
-- disconnect updates the status and transcript
 
 ## Menu command shortcuts
 
@@ -114,6 +113,7 @@ Expected result:
 Expected result:
 
 - list loads without UI crashes
+- the title is the first column and horizontal scrolling is available when columns overflow
 - filters do not break the view
 - selecting a row loads details
 - generate-fix returns a meaningful result or a clear backend error
@@ -134,6 +134,7 @@ Expected result:
 Expected result:
 
 - projects load
+- project, requirement, and activity lists show horizontal scrollbars when their columns overflow
 - selecting a project populates requirements
 - selecting a requirement populates activities
 - detail sidebars update correctly
@@ -148,6 +149,7 @@ Expected result:
 Expected result:
 
 - list loads
+- the list shows a horizontal scrollbar when its columns overflow
 - selecting a row loads execution details
 - empty-state or setup-state messages remain readable
 

@@ -13,31 +13,30 @@
     <Grid x:Name="LayoutRoot" Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Style="{StaticResource PageTitle}" Text="Vulnerabilities" />
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8">
             <ComboBox MinWidth="200" Margin="0,0,8,8" ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
             <Button Content="Refresh" Command="{Binding RefreshCommand}" />
             <TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}" />
         </WrapPanel>
-        <Grid Grid.Row="2"><Grid.RowDefinitions><RowDefinition Height="3*" MinHeight="120"/><RowDefinition Height="8"/><RowDefinition Height="2*" MinHeight="180"/></Grid.RowDefinitions>
+        <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="3*" MinHeight="120"/><RowDefinition Height="8"/><RowDefinition Height="2*" MinHeight="180"/></Grid.RowDefinitions>
         <DataGrid
             Grid.Row="0"
             AutoGenerateColumns="False"
             IsReadOnly="True"
+            ScrollViewer.HorizontalScrollBarVisibility="Auto"
             ItemsSource="{Binding Items}"
             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="320" />
                 <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="110" />
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="130" />
                 <DataGridTextColumn Header="Asset" Binding="{Binding AssetName}" Width="180" />
-                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="*" />
             </DataGrid.Columns>
         </DataGrid>
 

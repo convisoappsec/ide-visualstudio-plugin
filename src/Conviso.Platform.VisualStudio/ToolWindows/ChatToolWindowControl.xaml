@@ -18,10 +18,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Style="{StaticResource StatusText}" Text="{Binding Status}" />
-            <WrapPanel Margin="0,8,0,0">
-                <Button Command="{Binding ConnectCommand}" Content="Connect Chat" />
-                <Button Command="{Binding DisconnectCommand}" Content="Disconnect" />
+            <WrapPanel>
                 <Button Command="{Binding AttachSelectionCommand}" Content="Attach Selection" />
                 <Button Command="{Binding AnalyzeSelectionCommand}" Content="Analyze + Suggest Fix" />
                 <Button Command="{Binding CheckSimilarIssuesCommand}" Content="Check Similar Issues" />
@@ -40,7 +37,7 @@
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" MinHeight="80" />
-                <RowDefinition Height="12" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
@@ -66,6 +63,48 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+            <TextBlock
+                Grid.Row="1"
+                Margin="0,8,0,8"
+                HorizontalAlignment="Stretch"
+                Text="{Binding ThinkingStatus}"
+                TextAlignment="Left">
+                <TextBlock.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <LinearGradientBrush.RelativeTransform>
+                            <TranslateTransform X="-1" />
+                        </LinearGradientBrush.RelativeTransform>
+                        <GradientStop Offset="0" Color="#60000000" />
+                        <GradientStop Offset="0.42" Color="#60000000" />
+                        <GradientStop Offset="0.5" Color="#FF000000" />
+                        <GradientStop Offset="0.58" Color="#60000000" />
+                        <GradientStop Offset="1" Color="#60000000" />
+                    </LinearGradientBrush>
+                </TextBlock.OpacityMask>
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ThinkingStatus}" Value="Thinking...">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="ThinkingShimmer">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="OpacityMask.(Brush.RelativeTransform).(TranslateTransform.X)"
+                                                From="-1"
+                                                To="1"
+                                                Duration="0:0:1.5" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <RemoveStoryboard BeginStoryboardName="ThinkingShimmer" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
 
             <TextBox
                 Grid.Row="2"

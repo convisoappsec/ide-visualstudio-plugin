@@ -9,14 +9,12 @@
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Style="{StaticResource PageTitle}" Text="Projects and Requirements" />
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.4*" />
                 <ColumnDefinition Width="12" />
@@ -29,10 +27,11 @@
                 <DataGrid
                     AutoGenerateColumns="False"
                     IsReadOnly="True"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
                     ItemsSource="{Binding Projects}"
                     SelectedItem="{Binding SelectedProject, Mode=TwoWay}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="*" />
+                        <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="240" />
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110" />
                         <DataGridTextColumn Header="Type" Binding="{Binding ProjectTypeLabel}" Width="120" />
                     </DataGrid.Columns>
@@ -50,10 +49,11 @@
                     <DataGrid
                         AutoGenerateColumns="False"
                         IsReadOnly="True"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto"
                         ItemsSource="{Binding Requirements}"
                         SelectedItem="{Binding SelectedRequirement, Mode=TwoWay}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="*" />
+                            <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="240" />
                             <DataGridTextColumn Header="Checklist" Binding="{Binding ChecklistTypeLabel}" Width="140" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -63,10 +63,11 @@
                     <DataGrid
                         AutoGenerateColumns="False"
                         IsReadOnly="True"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto"
                         ItemsSource="{Binding Activities}"
                         SelectedItem="{Binding SelectedActivity, Mode=TwoWay}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="*" />
+                            <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="240" />
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110" />
                             <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt}" Width="140" />
                         </DataGrid.Columns>

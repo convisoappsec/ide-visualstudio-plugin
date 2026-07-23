@@ -13,27 +13,26 @@
     <Grid x:Name="LayoutRoot" Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Style="{StaticResource PageTitle}" Text="Pipeline Breaks" />
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
-        <Grid Grid.Row="2"><Grid.RowDefinitions><RowDefinition Height="3*"/><RowDefinition Height="8"/><RowDefinition Height="2*"/></Grid.RowDefinitions>
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
+        <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="3*"/><RowDefinition Height="8"/><RowDefinition Height="2*"/></Grid.RowDefinitions>
         <DataGrid
             Grid.Row="0"
             AutoGenerateColumns="False"
             IsReadOnly="True"
+            ScrollViewer.HorizontalScrollBarVisibility="Auto"
             ItemsSource="{Binding Items}"
             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" />
                 <DataGridTextColumn Header="Executed" Binding="{Binding ExecutionDate}" Width="150" />
                 <DataGridTextColumn Header="Triggered By" Binding="{Binding TriggeredBy}" Width="160" />
-                <DataGridTextColumn Header="Asset" Binding="{Binding AssetName}" Width="*" />
+                <DataGridTextColumn Header="Asset" Binding="{Binding AssetName}" Width="240" />
             </DataGrid.Columns>
         </DataGrid>
 

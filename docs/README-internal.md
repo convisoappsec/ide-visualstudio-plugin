@@ -113,13 +113,14 @@ Open `Tools > Conviso Chat`.
 
 The chat window supports:
 
-- `Connect Chat`
 - `Send Message`
 - `Attach Selection`
 - `Analyze + Suggest Fix`
 - `Check Similar Issues`
 - `Apply Suggested Fix`
 - `Mark Helpful`
+
+The broker connection is established automatically when a chat action needs it. A centered `Thinking...` indicator uses a permanently reserved line and is empty when no response is pending.
 
 Expected workflow:
 
