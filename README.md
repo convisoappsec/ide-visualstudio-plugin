@@ -48,8 +48,8 @@ If you do not have an account, sign up or start a free trial:
 
 1. In Visual Studio, open **Tools > Conviso Settings**.
 2. On the **Platform API** tab, enter your **API Token**.
-3. Select **Save Settings**.
-4. Open the **Scope** tab and choose the company to use. Accessible companies load automatically, and the selection is saved immediately.
+3. Open the **Scope** tab and choose the company to use.
+4. Select **Save Settings**.
 
 You can use **Test API** and **Test Chat** to validate the credentials. The API token is stored using Windows user-level data protection. The Platform API and AI service endpoints are configured by the extension and do not require manual URLs or separate broker credentials.
 
