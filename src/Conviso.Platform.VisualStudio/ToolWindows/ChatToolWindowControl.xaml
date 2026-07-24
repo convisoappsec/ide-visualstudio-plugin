@@ -19,16 +19,30 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <WrapPanel>
-                <Button Command="{Binding AttachSelectionCommand}" Content="Attach Selection" />
-                <Button Command="{Binding AnalyzeSelectionCommand}" Content="Analyze + Suggest Fix" />
-                <Button Command="{Binding CheckSimilarIssuesCommand}" Content="Check Similar Issues" />
-                <Button Command="{Binding ApplySuggestedFixCommand}" Content="Apply Suggested Fix" />
-                <Button Command="{Binding MarkResponseHelpfulCommand}" Content="Mark Helpful" />
-                <Button Command="{Binding ClearChatCommand}" Content="Clear Chat" />
+                <Button Command="{Binding AttachSelectionCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE723;" /><TextBlock Text="Attach Selection" /></StackPanel>
+                </Button>
+                <Button Command="{Binding AnalyzeSelectionCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE9D9;" /><TextBlock Text="Analyze + Suggest Fix" /></StackPanel>
+                </Button>
+                <Button Command="{Binding CheckSimilarIssuesCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE721;" /><TextBlock Text="Check Similar Issues" /></StackPanel>
+                </Button>
+                <Button Command="{Binding ApplySuggestedFixCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" /><TextBlock Text="Apply Suggested Fix" /></StackPanel>
+                </Button>
+                <Button Command="{Binding MarkResponseHelpfulCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE8E1;" /><TextBlock Text="Mark Helpful" /></StackPanel>
+                </Button>
+                <Button Command="{Binding ClearChatCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" /><TextBlock Text="Clear Chat" /></StackPanel>
+                </Button>
             </WrapPanel>
             <Border Margin="0,4,0,0" Style="{StaticResource Card}">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" Margin="12,0,0,0" HorizontalAlignment="Right" Command="{Binding ClearAttachedContextCommand}" Content="Clear" />
+                    <Button DockPanel.Dock="Right" Margin="12,0,0,0" HorizontalAlignment="Right" Command="{Binding ClearAttachedContextCommand}">
+                        <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE894;" /><TextBlock Text="Clear" /></StackPanel>
+                    </Button>
                     <TextBlock VerticalAlignment="Center" Text="{Binding AttachedContextSummary}" TextWrapping="Wrap" />
                 </DockPanel>
             </Border>
@@ -57,7 +71,16 @@
                         <Border Margin="0,0,0,8" Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock FontWeight="SemiBold" Text="{Binding Role}" />
-                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding Content}" />
+                                <TextBox
+                                    Margin="0,4,0,0"
+                                    Padding="0"
+                                    IsReadOnly="True"
+                                    TextWrapping="Wrap"
+                                    AcceptsReturn="True"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
+                                    Text="{Binding Content, Mode=OneWay}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -106,23 +129,43 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <TextBox
+            <Grid
                 Grid.Row="2"
-                Margin="0,0,0,12"
-                Height="80"
-                AcceptsReturn="True"
-                TextWrapping="Wrap"
-                VerticalScrollBarVisibility="Auto"
-                Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
-                Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
-                Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                Margin="0,0,0,12">
+                <TextBox
+                    Height="80"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto"
+                    Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
+                    Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
+                    Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Margin="6,4,0,0"
+                    VerticalAlignment="Top"
+                    IsHitTestVisible="False"
+                    Foreground="Gray"
+                    Text="Ask AppSec AI anything...">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Message}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
 
             <Button
                 Grid.Row="3"
                 Width="120"
                 HorizontalAlignment="Left"
-                Command="{Binding SendCommand}"
-                Content="Send Message" />
+                Command="{Binding SendCommand}">
+                <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE724;" /><TextBlock Text="Send Message" /></StackPanel>
+            </Button>
         </Grid>
     </Grid>
     </ScrollViewer>

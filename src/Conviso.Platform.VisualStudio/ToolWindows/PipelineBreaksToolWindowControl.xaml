@@ -19,7 +19,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Command="{Binding RefreshCommand}"><StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE72C;" /><TextBlock Text="Refresh" /></StackPanel></Button><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
         <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="3*"/><RowDefinition Height="8"/><RowDefinition Height="2*"/></Grid.RowDefinitions>
         <DataGrid
             Grid.Row="0"

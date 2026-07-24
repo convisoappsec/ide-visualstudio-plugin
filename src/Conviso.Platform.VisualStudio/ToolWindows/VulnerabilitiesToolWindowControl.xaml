@@ -21,7 +21,9 @@
 
         <WrapPanel Grid.Row="0" Margin="0,0,0,8">
             <ComboBox MinWidth="200" Margin="0,0,8,8" ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset, Mode=TwoWay}" DisplayMemberPath="DisplayLabel" />
-            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+            <Button Command="{Binding RefreshCommand}">
+                <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE72C;" /><TextBlock Text="Refresh" /></StackPanel>
+            </Button>
             <TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}" />
         </WrapPanel>
         <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="3*" MinHeight="120"/><RowDefinition Height="8"/><RowDefinition Height="2*" MinHeight="180"/></Grid.RowDefinitions>
@@ -51,10 +53,14 @@
                 <TextBlock Margin="0,8,0,0" Text="{Binding Severity, StringFormat=Severity: {0}}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding Status, StringFormat=Status: {0}}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding AssetName, StringFormat=Asset: {0}}" />
-                <Button Width="120" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding GenerateFixCommand}" Content="Generate Fix" />
+                <Button Width="140" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding GenerateFixCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE945;" /><TextBlock Text="Generate Fix" /></StackPanel>
+                </Button>
                 <TextBlock Margin="0,16,0,4" Text="New status" />
                 <TextBox Text="{Binding NewStatus, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Width="120" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateStatusCommand}" Content="Update Status" />
+                <Button Width="140" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateStatusCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" /><TextBlock Text="Update Status" /></StackPanel>
+                </Button>
                 <TextBlock Margin="0,12,0,0" Style="{StaticResource StatusText}" Text="{Binding CommandStatus}" />
             </StackPanel>
             </ScrollViewer>

@@ -12,7 +12,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Content="Refresh" Command="{Binding RefreshCommand}"/><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8"><Button Command="{Binding RefreshCommand}"><StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE72C;" /><TextBlock Text="Refresh" /></StackPanel></Button><TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}"/></WrapPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -92,7 +92,9 @@
                             <TextBlock Text="{Binding ProjectRequirements}" TextWrapping="Wrap" />
                             <TextBlock Margin="0,16,0,4" Text="New project status" />
                             <TextBox Text="{Binding NewProjectStatus, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button Width="140" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateProjectStatusCommand}" Content="Update Project" />
+                            <Button Width="160" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateProjectStatusCommand}">
+                                <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" /><TextBlock Text="Update Project" /></StackPanel>
+                            </Button>
                             <TextBlock Margin="0,12,0,0" Foreground="Gray" Text="{Binding ProjectCommandStatus}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
@@ -119,7 +121,9 @@
                             <TextBlock Margin="0,4,0,0" Text="{Binding ActivityUpdatedAt, StringFormat=Updated: {0}}" />
                             <TextBlock Margin="0,16,0,4" Text="New activity status" />
                             <TextBox Text="{Binding NewActivityStatus, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button Width="140" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateActivityStatusCommand}" Content="Update Activity" />
+                            <Button Width="160" Margin="0,12,0,0" HorizontalAlignment="Left" Command="{Binding UpdateActivityStatusCommand}">
+                                <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" /><TextBlock Text="Update Activity" /></StackPanel>
+                            </Button>
                             <TextBlock Margin="0,12,0,0" Foreground="Gray" Text="{Binding ActivityCommandStatus}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
