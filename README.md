@@ -1,189 +1,109 @@
-# ide-visualstudio-plugin
+# Conviso Platform for Visual Studio
 
-Visual Studio 2022 extension for Conviso Platform integration.
+Analyze code, review security vulnerabilities, receive AI-powered remediation guidance, and interact with Conviso AI without leaving Visual Studio.
 
-## What this repository is
+## 🔐 What can you do with Conviso Platform for Visual Studio?
 
-This repository is the Visual Studio port of the existing Conviso IDE plugin ecosystem.
-It is no longer just a blank scaffold: the extension already exposes commands, tool windows, settings persistence, GraphQL-backed views, and broker-backed chat actions.
+- **Analyze code and receive AI-powered security recommendations.**  
+  Select code in the editor to identify potential security issues, understand their risks, and receive practical remediation guidance.
 
-What is still true is that the port has not been validated end to end on a Windows + Visual Studio environment yet. Because of that, the main risk today is not missing code structure, but unclear operator guidance and unknown runtime gaps.
+- **Apply AI-assisted code fixes.**  
+  When an AI response includes a suggested code block, apply it directly to the current editor selection after reviewing and confirming the change.
 
-## Current scope
+- **Review vulnerabilities from Conviso Platform.**  
+  Filter vulnerabilities by asset for the configured company, inspect their details, request an AI-generated fix, and update vulnerability status from Visual Studio.
 
-Implemented in the repository:
+- **Track projects, security requirements, and activities.**  
+  Browse projects and their requirements, inspect related activities, and update project or activity status.
 
-- VSIX project and solution structure for Visual Studio 2022
-- `AsyncPackage` bootstrap and command registration
-- `Conviso Settings` tool window
-- `Conviso Chat` tool window with:
-  - broker connection
-  - free-form chat
-  - attach selection
-  - analyze selected code
-  - check similar issues across the workspace
-  - apply suggested fix from the latest assistant response
-  - mark response as helpful
-- `Conviso Vulnerabilities` tool window with:
-  - company filter
-  - asset filter
-  - vulnerability list
-  - vulnerability details
-  - generate-fix action
-  - vulnerability status update
-- `Conviso Requirements` tool window with:
-  - projects list
-  - requirement list per project
-  - activities list per requirement
-  - project status update
-  - activity status update
-- `Conviso Pipeline Breaks` tool window with list and details
-- GraphQL diagnostics routed to the Visual Studio ActivityLog
-- Secrets stored with Windows user protection through the settings service
+- **Investigate pipeline breaks.**  
+  Review security gate executions and inspect their status, source, asset, trigger, and failure reasons.
 
-Known gaps and risks:
+- **Chat with Conviso AI using IDE context.**  
+  Attach a code selection, analyze selected code, include workspace files when checking for similar issues, apply a suggested fix, and mark useful responses.
 
-- no validated Windows test pass yet
-- build and installation flow has not been documented until now
-- broker compatibility still depends on the target environment
-- local AST scanner parity with the VS Code extension is not present
-- there is no automated validation in this repository for the VSIX runtime behavior
+> The current Visual Studio extension does not include a standalone local repository scanner or a separate Repository Vulnerabilities view.
 
-## Quick start
+---
 
-### Prerequisites
+## 🔑 Getting access
 
-- Windows
-- Visual Studio 2022
-- access to a Conviso API token
-- access to a broker endpoint and API key when chat features are used
+You need a Conviso Platform account and a valid Platform API token.
 
-### Install and open
+If you do not have an account, sign up or start a free trial:
 
-For end users and QA:
+👉 https://www.convisoappsec.com/
 
-1. Install the provided `.vsix` package.
-2. Open Visual Studio 2022.
-3. Open a repository or project with editable source files.
+---
 
-For maintainers preparing a test build:
+## 🛠️ Installation and configuration
 
-1. Open `Conviso.Platform.VisualStudio.sln` in Visual Studio 2022.
-2. Restore packages if Visual Studio prompts for it.
-3. Build the solution in `Debug` or `Release`.
-4. Start the extension in the Experimental Instance with `F5`, or distribute the generated `.vsix` on Windows.
+### Install the extension
 
-Notes:
+1. Go to **Extensions > Manage Extensions > Online**.
+2. Search for **Conviso Platform**.
+3. Install.
 
-- The project targets `.NET Framework 4.7.2`.
-- This repository can be edited on macOS, but the VSIX cannot be validated end to end outside Windows + Visual Studio 2022.
+### Configure Conviso Platform
 
-## How to use the extension
+1. In Visual Studio, open **Tools > Conviso Settings**.
+2. On the **Platform API** tab, enter your **API Token**.
+3. Open the **Scope** tab and choose the company to use.
+4. Select **Save Settings**.
 
-After installation, open the commands from the Visual Studio `Tools` menu:
+You can use **Test API** and **Test Chat** to validate the credentials. The API token is stored using Windows user-level data protection.
 
-- `Conviso Chat`
-- `Conviso Vulnerabilities`
-- `Conviso Requirements`
-- `Conviso Pipeline Breaks`
-- `Conviso Settings`
-- `Analyze + Suggest Fix`
-- `Attach Selection to Chat`
-- `Check Similar Issues`
+---
 
-### 1. Configure settings first
+## 🚀 How to use
 
-Open `Tools > Conviso Settings` and fill:
+Open extension features from Visual Studio's **Tools** menu:
 
-- `API Base URL`
-- `API Token`
-- `Company ID`
-- `Requirements Scope ID`
-- `Broker Endpoint`
-- `Broker API Key`
+- **Conviso Chat** — opens **AI Autonomous AppSec** for security questions, code analysis, workspace similarity checks, and AI-assisted fixes.
+- **Conviso Vulnerabilities** — reviews and manages vulnerabilities from Conviso Platform.
+- **Conviso Requirements** — browses projects, requirements, and related activities.
+- **Conviso Pipeline Breaks** — investigates security gate executions and their failure reasons.
+- **Conviso Settings** — configures the API token and company.
 
-Useful behavior already implemented:
+The **Tools** menu also provides direct editor actions:
 
-- `Load Companies` fetches accessible companies from the API
-- `Use Selected Company` copies the selected company into `Company ID` and `Requirements Scope ID`
-- `Save Settings` persists text values and stores secrets with Windows user protection
-- `Test API` performs a GraphQL round-trip
-- `Test Broker` attempts a WebSocket connection
-- `Use Defaults` restores the default API base URL and broker endpoint
+- **Analyze + Suggest Fix**
+- **Attach Selection to Chat**
+- **Check Similar Issues**
 
-### 2. Use chat features
+### Analyze selected code
 
-Open `Tools > Conviso Chat`.
+1. Open a source file and select the relevant code.
+2. Choose **Tools > Analyze + Suggest Fix**, or open **Conviso Chat** and use **Analyze + Suggest Fix**.
+3. Review the response in **AI Autonomous AppSec**.
+4. If the response contains a fenced code block, select the destination code and choose **Apply Suggested Fix**.
 
-The chat window supports:
+The extension always asks for confirmation before replacing the current selection.
 
-- `Connect Chat`
-- `Send Message`
-- `Attach Selection`
-- `Analyze + Suggest Fix`
-- `Check Similar Issues`
-- `Apply Suggested Fix`
-- `Mark Helpful`
+### Use selection and workspace context
 
-Expected workflow:
+- **Attach Selection** adds the current code selection to subsequent chat messages.
+- **Clear** removes the attached selection.
+- **Check Similar Issues** collects supported workspace files and asks Conviso AI to identify similar patterns.
+- **Clear Chat** removes the current transcript.
 
-1. Open a file and select the code you want to analyze.
-2. Use `Attach Selection` if you want the selected code added as context to the chat session.
-3. Use `Analyze + Suggest Fix` to send the current selection for analysis.
-4. Use `Check Similar Issues` to scan the workspace for similar patterns.
-5. If the assistant returns a fenced code block, use `Apply Suggested Fix` to replace the current selection after confirmation.
+### Manage vulnerabilities
 
-Important behavior:
+1. Open **Tools > Conviso Vulnerabilities**.
+2. Optionally filter by asset.
+3. Select a vulnerability to inspect its title, description, severity, status, and asset.
+4. Use **Generate Fix** to request an AI-assisted remediation result.
+5. Enter a permitted status and use **Update Status** to update the finding in Conviso Platform.
 
-- `Analyze + Suggest Fix`, `Attach Selection to Chat`, and `Check Similar Issues` are also exposed as top-level menu commands and will open the chat window automatically.
-- `Apply Suggested Fix` only works when there is a current editor selection and the assistant response contains a fenced code block.
+### Review requirements and pipeline breaks
 
-### 3. Use data views
+- In **Conviso Requirements**, select a project to view its details and requirements, then select a requirement to inspect its activities. Project and activity status can be updated from their detail panels.
+- In **Conviso Pipeline Breaks**, select an execution to inspect its status, date, trigger, source, asset, and severity-based failure reasons.
 
-`Conviso Vulnerabilities`
+---
 
-- filter by company and asset
-- refresh the list
-- inspect details
-- generate a fix suggestion
-- update vulnerability status
+## 💡 Pro tip
 
-`Conviso Requirements`
+Use Conviso Platform throughout development: attach the smallest relevant code selection for focused AI guidance, check for similar patterns across the workspace, and review Platform findings before committing your changes.
 
-- load projects
-- inspect project details
-- inspect requirements for a selected project
-- inspect activities for a selected requirement
-- update project status
-- update activity status
-
-`Conviso Pipeline Breaks`
-
-- load the list of pipeline break executions
-- inspect execution details for the selected row
-
-## Recommended validation flow
-
-Use the checklist in [docs/manual-validation.md](/Users/welias/welias_files/dev/ide-visualstudio-plugin/docs/manual-validation.md) before calling this port production-ready.
-
-## Troubleshooting
-
-- If API requests fail, inspect the Visual Studio ActivityLog. GraphQL request and response details are logged there.
-- If company discovery fails, verify `API Base URL` and `API Token` first.
-- If chat does not connect, verify the broker endpoint resolves to `/ws` and that the broker API key is valid.
-- If `Apply Suggested Fix` is disabled or fails, confirm that:
-  - the assistant returned a fenced code block
-  - the target file is open
-  - the intended replacement region is selected
-
-## Repository layout
-
-- `src/Conviso.Platform.VisualStudio`: Visual Studio VSIX project
-- `docs/architecture.md`: port architecture and runtime boundaries
-- `docs/manual-validation.md`: manual test checklist for Windows validation
-
-## References
-
-- `../platform-ide-plugins/docs/ide-adapters.md`
-- `../platform-ide-plugins/docs/protocol.md`
-- `../ide-vscode-plugin/docs/architecture.md`
+Build secure software without leaving **Visual Studio** using **Conviso Platform**.

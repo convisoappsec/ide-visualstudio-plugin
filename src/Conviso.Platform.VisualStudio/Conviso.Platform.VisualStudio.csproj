@@ -24,9 +24,20 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Security" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <!-- VSIX projects do not reliably infer the runtime closure of PackageReference.
+         Force the JSON runtime and its net472 dependencies into the VSIX container. -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" ForceIncludeInVSIX="true" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" ForceIncludeInVSIX="true" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" ForceIncludeInVSIX="true" />
+    <PackageReference Include="System.Memory" Version="4.5.5" ForceIncludeInVSIX="true" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" ForceIncludeInVSIX="true" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" ForceIncludeInVSIX="true" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" ForceIncludeInVSIX="true" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.13.2126" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable"
+                  Version="8.0.0"
+                  PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +47,9 @@
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="Resources\pluginIcon.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />

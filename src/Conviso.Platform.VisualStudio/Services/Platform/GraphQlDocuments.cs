@@ -32,13 +32,11 @@ query Issues(
   $pagination: PaginationInput!
   $filters: IssuesFiltersInput
   $companyId: ID!
-  $sortOptions: [IssueSortOptionInput!]
 ) {
   issues(
     pagination: $pagination
     filters: $filters
     companyId: $companyId
-    sortOptions: $sortOptions
   ) {
     collection {
       id

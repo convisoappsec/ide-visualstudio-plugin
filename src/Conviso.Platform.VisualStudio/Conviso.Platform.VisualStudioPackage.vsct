@@ -6,7 +6,7 @@
   <Commands package="guidConvisoPlatformPackage">
     <Groups>
       <Group guid="guidConvisoPlatformCommandSet" id="ConvisoGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
     </Groups>
 

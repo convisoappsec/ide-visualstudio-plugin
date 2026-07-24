@@ -48,50 +48,44 @@ Expected result:
 
 1. Open `Tools > Conviso Settings`.
 2. Verify all fields render:
-   - API Base URL
    - API Token
-   - Company ID
-   - Requirements Scope ID
-   - Accessible companies
-   - Broker Endpoint
-   - Broker API Key
-3. Click `Use Defaults`.
-4. Enter valid API and broker credentials.
-5. Click `Save Settings`.
-6. Click `Test API`.
-7. Click `Load Companies`.
-8. Select a company and click `Use Selected Company`.
-9. Click `Save Settings` again.
-10. Click `Test Broker`.
+   - Company
+3. Enter a valid API token.
+4. Click `Save Settings`.
+5. Click `Test API`.
+6. Open the `Scope` tab.
+7. Confirm that accessible companies load automatically.
+8. If this is the first configuration, confirm that the first company is selected automatically.
+9. Select another company, close the settings window, reopen it, and return to `Scope`.
+10. Click `Test Chat`.
 
 Expected result:
 
 - status messages change coherently after each action
 - accessible companies load for a valid token
-- selected company fills both `Company ID` and `Requirements Scope ID`
+- the selected company is saved immediately and restored when settings are reopened
 - API test succeeds or returns a clear permission error
-- broker test succeeds or returns a clear connection error
+- chat test succeeds or returns a clear connection error
 
 ## Chat window
 
 1. Open `Tools > Conviso Chat`.
-2. Click `Connect Chat`.
-3. Send a plain message.
+2. Send a plain message without connecting manually.
+3. Confirm that `Thinking...` appears centered between the transcript and message input while the response is pending, then changes to an empty reserved line.
 4. Open a code file, select a snippet, and click `Attach Selection`.
 5. Click `Analyze + Suggest Fix`.
 6. Click `Check Similar Issues`.
 7. If a response contains a fenced code block, select the target code and click `Apply Suggested Fix`.
 8. Click `Mark Helpful`.
-9. Click `Disconnect`.
 
 Expected result:
 
-- connection status changes to connected
+- the chat connects automatically when an action needs the broker
 - transcript shows user and assistant messages
+- the transient `Thinking...` indicator is empty when no response is pending without shifting the input
 - attach-selection updates the context summary
 - analyze and similarity actions append responses instead of failing silently
 - apply-fix asks for confirmation and replaces only the current selection
-- disconnect updates the status and transcript
 
 ## Menu command shortcuts
 
@@ -108,18 +102,22 @@ Expected result:
 ## Vulnerabilities window
 
 1. Open `Tools > Conviso Vulnerabilities`.
-2. Confirm the company filter loads.
-3. Change the company filter.
-4. Change the asset filter.
-5. Click `Refresh`.
-6. Select a vulnerability row.
-7. Review the details panel.
-8. Click `Generate Fix`.
-9. Enter a new status and click `Update Status`.
+2. Confirm that data uses the company configured in `Conviso Settings > Scope`.
+3. Type part of a vulnerability title in `Filter by title...`.
+4. Confirm results change on each keystroke without a loading request.
+5. Clear the text filter and confirm all loaded vulnerabilities return.
+6. Change the asset filter.
+7. Click `Refresh`.
+8. Select a vulnerability row.
+9. Review the details panel.
+10. Click `Generate Fix`.
+11. Enter a new status and click `Update Status`.
 
 Expected result:
 
 - list loads without UI crashes
+- the title is the first column and horizontal scrolling is available when columns overflow
+- title filtering is case-insensitive, supports no-match results, and does not discard loaded items
 - filters do not break the view
 - selecting a row loads details
 - generate-fix returns a meaningful result or a clear backend error
@@ -129,17 +127,22 @@ Expected result:
 
 1. Open `Tools > Conviso Requirements`.
 2. Click `Refresh`.
-3. Select a project.
-4. Verify project details load.
-5. Select a requirement.
-6. Verify requirement details and activities load.
-7. Select an activity.
-8. Change project status and click `Update Project`.
-9. Change activity status and click `Update Activity`.
+3. Filter projects by label, then clear the filter.
+4. Select a project.
+5. Verify project details load.
+6. Filter requirements by label, then clear the filter.
+7. Select a requirement.
+8. Verify requirement details and activities load.
+9. Filter activities by title, then clear the filter.
+10. Select an activity.
+11. Change project status and click `Update Project`.
+12. Change activity status and click `Update Activity`.
 
 Expected result:
 
 - projects load
+- project, requirement, and activity lists show horizontal scrollbars when their columns overflow
+- each text filter updates only its local loaded list and preserves the full list when cleared
 - selecting a project populates requirements
 - selecting a requirement populates activities
 - detail sidebars update correctly
@@ -149,11 +152,14 @@ Expected result:
 
 1. Open `Tools > Conviso Pipeline Breaks`.
 2. Click `Refresh`.
-3. Select an item.
+3. Filter the list by part of an asset name, then clear the filter.
+4. Select an item.
 
 Expected result:
 
 - list loads
+- the list shows a horizontal scrollbar when its columns overflow
+- asset filtering updates immediately without an additional API request
 - selecting a row loads execution details
 - empty-state or setup-state messages remain readable
 

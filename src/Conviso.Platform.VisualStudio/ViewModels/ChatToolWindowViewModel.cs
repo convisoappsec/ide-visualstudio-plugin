@@ -21,12 +21,14 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
     private readonly IBrokerClient brokerClient;
     private readonly IEditorContextService editorContextService;
     private readonly IPatchService patchService;
+    private readonly SemaphoreSlim connectionLock = new SemaphoreSlim(1, 1);
     private readonly Dictionary<string, int> requestExtractorIdMap = new Dictionary<string, int>();
     private EditorContextSnapshot? attachedContext;
     private string? latestCompletedRequestId;
     private string status = "Ready";
     private string message = string.Empty;
     private string attachedContextSummary = "No attached selection.";
+    private string thinkingStatus = string.Empty;
 
     public ChatToolWindowViewModel(
         ISettingsService settingsService,
@@ -39,15 +41,14 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         this.editorContextService = editorContextService;
         this.patchService = patchService;
         Transcript = new ObservableCollection<ChatTranscriptItem>();
-        ConnectCommand = new AsyncDelegateCommand(ConnectAsync);
         SendCommand = new AsyncDelegateCommand(SendAsync, () => !string.IsNullOrWhiteSpace(Message));
-        DisconnectCommand = new AsyncDelegateCommand(DisconnectAsync);
         AttachSelectionCommand = new AsyncDelegateCommand(AttachSelectionAsync);
         AnalyzeSelectionCommand = new AsyncDelegateCommand(AnalyzeSecurityAndSuggestFixAsync);
         CheckSimilarIssuesCommand = new AsyncDelegateCommand(CheckSimilarIssuesAsync);
         ApplySuggestedFixCommand = new AsyncDelegateCommand(ApplySuggestedFixAsync, CanApplySuggestedFix);
         MarkResponseHelpfulCommand = new AsyncDelegateCommand(MarkResponseHelpfulAsync, CanMarkResponseHelpful);
         ClearAttachedContextCommand = new AsyncDelegateCommand(ClearAttachedContextAsync, () => attachedContext != null);
+        ClearChatCommand = new AsyncDelegateCommand(ClearChatAsync, () => Transcript.Count > 0);
         brokerClient.EventReceived += OnBrokerEventReceived;
     }
 
@@ -69,11 +70,13 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         }
     }
 
-    public AsyncDelegateCommand ConnectCommand { get; }
+    public string ThinkingStatus
+    {
+        get => thinkingStatus;
+        set => SetProperty(ref thinkingStatus, value);
+    }
 
     public AsyncDelegateCommand SendCommand { get; }
-
-    public AsyncDelegateCommand DisconnectCommand { get; }
 
     public AsyncDelegateCommand AttachSelectionCommand { get; }
 
@@ -87,25 +90,14 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
     public AsyncDelegateCommand ClearAttachedContextCommand { get; }
 
+    public AsyncDelegateCommand ClearChatCommand { get; }
+
     public ObservableCollection<ChatTranscriptItem> Transcript { get; }
 
     public string AttachedContextSummary
     {
         get => attachedContextSummary;
         set => SetProperty(ref attachedContextSummary, value);
-    }
-
-    private async Task ConnectAsync()
-    {
-        try
-        {
-            await EnsureConnectedAsync();
-        }
-        catch (System.Exception error)
-        {
-            Status = "Connection failed";
-            Transcript.Add(new ChatTranscriptItem("system", "Connection failed: " + error.Message));
-        }
     }
 
     private async Task SendAsync()
@@ -118,6 +110,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
         try
         {
+            ThinkingStatus = "Thinking...";
             await EnsureConnectedAsync();
             Transcript.Add(new ChatTranscriptItem("user", currentMessage));
             var context = attachedContext ?? await editorContextService.GetActiveContextAsync(CancellationToken.None);
@@ -129,6 +122,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         }
         catch (System.Exception error)
         {
+            ThinkingStatus = string.Empty;
             Status = "Send failed";
             Transcript.Add(new ChatTranscriptItem("system", "Failed to send: " + error.Message));
         }
@@ -174,6 +168,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             string userMessage = "Analyze the selected code and suggest a fix.";
             string request = context.SelectionText;
 
+            ThinkingStatus = "Thinking...";
             await EnsureConnectedAsync();
             Transcript.Add(new ChatTranscriptItem("user", userMessage));
             await brokerClient.SendChatMessageAsync(new ChatMessage("user", request, context.Language), CancellationToken.None);
@@ -181,6 +176,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         }
         catch (System.Exception error)
         {
+            ThinkingStatus = string.Empty;
             Status = "Analyze failed";
             Transcript.Add(new ChatTranscriptItem("system", "Failed to analyze selection: " + error.Message));
         }
@@ -210,6 +206,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             string request = BuildSimilarIssuesMessage(context, workspaceContext!);
             string userMessage = "Check whether the selected issue appears elsewhere in the workspace (" + workspaceFilesCount + " files scanned).";
 
+            ThinkingStatus = "Thinking...";
             await EnsureConnectedAsync();
             Transcript.Add(new ChatTranscriptItem("user", userMessage));
             await brokerClient.SendChatMessageAsync(new ChatMessage("user", request, context.Language), CancellationToken.None);
@@ -217,6 +214,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         }
         catch (System.Exception error)
         {
+            ThinkingStatus = string.Empty;
             Status = "Similarity scan failed";
             Transcript.Add(new ChatTranscriptItem("system", "Failed to check similar issues: " + error.Message));
         }
@@ -294,6 +292,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
                 return;
             }
 
+            await EnsureConnectedAsync();
             await brokerClient.UpdateExtractorAcceptedAsync(extractorId, CancellationToken.None);
             Status = "Response marked as helpful";
             Transcript.Add(new ChatTranscriptItem("system", "Assistant response marked as helpful."));
@@ -316,23 +315,16 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
-    private async Task DisconnectAsync()
+    private Task ClearChatAsync()
     {
-        try
-        {
-            await brokerClient.DisconnectAsync(CancellationToken.None);
-            Status = "Disconnected";
-            Transcript.Add(new ChatTranscriptItem("system", "Disconnected from broker."));
-            ApplySuggestedFixCommand.RaiseCanExecuteChanged();
-            MarkResponseHelpfulCommand.RaiseCanExecuteChanged();
-        }
-        catch (System.Exception error)
-        {
-            Status = "Disconnect failed";
-            Transcript.Add(new ChatTranscriptItem("system", "Disconnect failed: " + error.Message));
-            ApplySuggestedFixCommand.RaiseCanExecuteChanged();
-            MarkResponseHelpfulCommand.RaiseCanExecuteChanged();
-        }
+        Transcript.Clear();
+        requestExtractorIdMap.Clear();
+        latestCompletedRequestId = null;
+        Status = "Chat cleared";
+        ClearChatCommand.RaiseCanExecuteChanged();
+        ApplySuggestedFixCommand.RaiseCanExecuteChanged();
+        MarkResponseHelpfulCommand.RaiseCanExecuteChanged();
+        return Task.CompletedTask;
     }
 
     private void OnBrokerEventReceived(BrokerEvent brokerEvent)
@@ -341,11 +333,11 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
         {
             if (brokerEvent.Type == "analysis_chunk")
             {
+                ThinkingStatus = string.Empty;
                 var last = Transcript.LastOrDefault();
                 if (last != null && last.Role == "assistant")
                 {
-                    Transcript.Remove(last);
-                    Transcript.Add(new ChatTranscriptItem("assistant", last.Content + brokerEvent.Content));
+                    last.Content += brokerEvent.Content;
                 }
                 else
                 {
@@ -360,6 +352,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
             if (brokerEvent.Type == "analysis_complete")
             {
+                ThinkingStatus = string.Empty;
                 latestCompletedRequestId = brokerEvent.RequestId;
                 TrackExtractorId(brokerEvent);
                 if (!string.IsNullOrWhiteSpace(brokerEvent.Content))
@@ -379,6 +372,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
 
             if (brokerEvent.Type == "analysis_error" || brokerEvent.Type == "error")
             {
+                ThinkingStatus = string.Empty;
                 Transcript.Add(new ChatTranscriptItem("system", brokerEvent.Content));
                 Status = "Error from broker";
                 ApplySuggestedFixCommand.RaiseCanExecuteChanged();
@@ -386,6 +380,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
                 return;
             }
 
+            ThinkingStatus = string.Empty;
             Transcript.Add(new ChatTranscriptItem("assistant", brokerEvent.Content));
             Status = "Message received";
             ApplySuggestedFixCommand.RaiseCanExecuteChanged();
@@ -398,10 +393,17 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             return;
         }
 
-        ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
+        _ = ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            UpdateUi();
+            try
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                UpdateUi();
+            }
+            catch (System.Exception error)
+            {
+                DiagnosticsLogger.LogError("Unable to update chat UI from broker event: " + error);
+            }
         });
     }
 
@@ -468,6 +470,7 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             return;
         }
 
+        await EnsureConnectedAsync();
         await brokerClient.UpdateExtractorAcceptedAsync(extractorId, CancellationToken.None);
         Transcript.Add(new ChatTranscriptItem("system", successMessage));
     }
@@ -528,16 +531,26 @@ internal sealed class ChatToolWindowViewModel : ObservableObject
             return;
         }
 
-        Status = "Connecting...";
-        await brokerClient.ConnectAsync(
-            new BrokerConnectionOptions
+        await connectionLock.WaitAsync();
+        try
+        {
+            if (brokerClient.IsConnected)
             {
-                Endpoint = settingsService.GetString(ConvisoOptions.BrokerEndpointKey, ConvisoOptions.DefaultBrokerEndpoint),
-                ApiKey = settingsService.GetSecret(ConvisoOptions.BrokerApiKeyKey, string.Empty),
-            },
-            CancellationToken.None);
-        Status = "Connected";
-        Transcript.Add(new ChatTranscriptItem("system", "Connected to broker."));
+                return;
+            }
+
+            await brokerClient.ConnectAsync(
+                new BrokerConnectionOptions
+                {
+                    Endpoint = ConvisoOptions.DefaultBrokerEndpoint,
+                    ApiKey = settingsService.GetSecret(ConvisoOptions.ApiTokenKey, string.Empty),
+                },
+                CancellationToken.None);
+        }
+        finally
+        {
+            connectionLock.Release();
+        }
     }
 
     private static string BuildBrokerMessage(string message, EditorContextSnapshot? context)

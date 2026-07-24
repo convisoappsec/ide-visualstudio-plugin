@@ -1,76 +1,172 @@
 <UserControl
     x:Class="Conviso.Platform.VisualStudio.ToolWindows.ChatToolWindowControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="16">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
+    Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}">
+    <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="ToolWindowStyles.xaml" /></ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
+    <ScrollViewer
+        x:Name="WindowScrollViewer"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        SizeChanged="OnWindowScrollViewerSizeChanged">
+    <Grid x:Name="LayoutRoot" Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock
-            FontSize="18"
-            FontWeight="SemiBold"
-            Text="Conviso Platform" />
-
-        <StackPanel Grid.Row="1" Margin="0,8,0,16">
-            <TextBlock Foreground="Gray" Text="{Binding Status}" />
-            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <Button Width="120" HorizontalAlignment="Left" Command="{Binding ConnectCommand}" Content="Connect Chat" />
-                <Button Width="120" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding DisconnectCommand}" Content="Disconnect" />
-                <Button Width="120" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding AttachSelectionCommand}" Content="Attach Selection" />
-                <Button Width="160" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding AnalyzeSelectionCommand}" Content="Analyze + Suggest Fix" />
-                <Button Width="140" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding CheckSimilarIssuesCommand}" Content="Check Similar Issues" />
-                <Button Width="130" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding ApplySuggestedFixCommand}" Content="Apply Suggested Fix" />
-                <Button Width="120" Margin="8,0,0,0" HorizontalAlignment="Left" Command="{Binding MarkResponseHelpfulCommand}" Content="Mark Helpful" />
-            </StackPanel>
-            <Border Margin="0,12,0,0" Padding="8" Background="#F7F7F7" CornerRadius="4">
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <WrapPanel>
+                <Button Command="{Binding AttachSelectionCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE723;" /><TextBlock Text="Attach Selection" /></StackPanel>
+                </Button>
+                <Button Command="{Binding AnalyzeSelectionCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE9D9;" /><TextBlock Text="Analyze + Suggest Fix" /></StackPanel>
+                </Button>
+                <Button Command="{Binding CheckSimilarIssuesCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE721;" /><TextBlock Text="Check Similar Issues" /></StackPanel>
+                </Button>
+                <Button Command="{Binding ApplySuggestedFixCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" /><TextBlock Text="Apply Suggested Fix" /></StackPanel>
+                </Button>
+                <Button Command="{Binding MarkResponseHelpfulCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE8E1;" /><TextBlock Text="Mark Helpful" /></StackPanel>
+                </Button>
+                <Button Command="{Binding ClearChatCommand}">
+                    <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" /><TextBlock Text="Clear Chat" /></StackPanel>
+                </Button>
+            </WrapPanel>
+            <Border Margin="0,4,0,0" Style="{StaticResource Card}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="{Binding AttachedContextSummary}" TextWrapping="Wrap" />
-                    <Button DockPanel.Dock="Right" Width="60" Margin="12,0,0,0" HorizontalAlignment="Right" Command="{Binding ClearAttachedContextCommand}" Content="Clear" />
+                    <Button DockPanel.Dock="Right" Margin="12,0,0,0" HorizontalAlignment="Right" Command="{Binding ClearAttachedContextCommand}">
+                        <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE894;" /><TextBlock Text="Clear" /></StackPanel>
+                    </Button>
+                    <TextBlock VerticalAlignment="Center" Text="{Binding AttachedContextSummary}" TextWrapping="Wrap" />
                 </DockPanel>
             </Border>
         </StackPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="2*" />
-                <RowDefinition Height="12" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="*" MinHeight="80" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <ListBox
                 Grid.Row="0"
+                x:Name="TranscriptList"
+                MinHeight="100"
+                HorizontalContentAlignment="Stretch"
+                ScrollViewer.CanContentScroll="False"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
+                Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
                 ItemsSource="{Binding Transcript}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="0,0,0,8" Padding="8" Background="#F4F4F4" CornerRadius="4">
+                        <Border Margin="0,0,0,8" Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock FontWeight="SemiBold" Text="{Binding Role}" />
-                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding Content}" />
+                                <TextBox
+                                    Margin="0,4,0,0"
+                                    Padding="0"
+                                    IsReadOnly="True"
+                                    TextWrapping="Wrap"
+                                    AcceptsReturn="True"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
+                                    Text="{Binding Content, Mode=OneWay}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <TextBox
+            <TextBlock
+                Grid.Row="1"
+                Margin="0,8,0,8"
+                HorizontalAlignment="Stretch"
+                Text="{Binding ThinkingStatus}"
+                TextAlignment="Left">
+                <TextBlock.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <LinearGradientBrush.RelativeTransform>
+                            <TranslateTransform X="-1" />
+                        </LinearGradientBrush.RelativeTransform>
+                        <GradientStop Offset="0" Color="#60000000" />
+                        <GradientStop Offset="0.42" Color="#60000000" />
+                        <GradientStop Offset="0.5" Color="#FF000000" />
+                        <GradientStop Offset="0.58" Color="#60000000" />
+                        <GradientStop Offset="1" Color="#60000000" />
+                    </LinearGradientBrush>
+                </TextBlock.OpacityMask>
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ThinkingStatus}" Value="Thinking...">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="ThinkingShimmer">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="OpacityMask.(Brush.RelativeTransform).(TranslateTransform.X)"
+                                                From="-1"
+                                                To="1"
+                                                Duration="0:0:1.5" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <RemoveStoryboard BeginStoryboardName="ThinkingShimmer" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <Grid
                 Grid.Row="2"
-                Grid.RowSpan="2"
-                Margin="0,0,0,12"
-                AcceptsReturn="True"
-                TextWrapping="Wrap"
-                VerticalScrollBarVisibility="Auto"
-                Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                Margin="0,0,0,12">
+                <TextBox
+                    Height="80"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto"
+                    Background="{DynamicResource {x:Static vs:VsBrushes.ToolWindowBackgroundKey}}"
+                    Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolWindowTextKey}}"
+                    Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Margin="6,4,0,0"
+                    VerticalAlignment="Top"
+                    IsHitTestVisible="False"
+                    Foreground="Gray"
+                    Text="Ask AppSec AI anything...">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Message}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
 
             <Button
                 Grid.Row="3"
                 Width="120"
                 HorizontalAlignment="Left"
-                Command="{Binding SendCommand}"
-                Content="Send Message" />
+                Command="{Binding SendCommand}">
+                <StackPanel Orientation="Horizontal"><TextBlock Margin="0,0,6,0" FontFamily="Segoe MDL2 Assets" Text="&#xE724;" /><TextBlock Text="Send Message" /></StackPanel>
+            </Button>
         </Grid>
     </Grid>
+    </ScrollViewer>
 </UserControl>
