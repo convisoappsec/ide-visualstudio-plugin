@@ -40,7 +40,7 @@ If you do not have an account, sign up or start a free trial:
 
 ### Install the extension
 
-1. Go to **Extensions > Manager Extensions > Online**.
+1. Go to **Extensions > Manage Extensions > Online**.
 2. Search for **Conviso Platform**.
 3. Install.
 
@@ -51,7 +51,7 @@ If you do not have an account, sign up or start a free trial:
 3. Open the **Scope** tab and choose the company to use.
 4. Select **Save Settings**.
 
-You can use **Test API** and **Test Chat** to validate the credentials. The API token is stored using Windows user-level data protection. The Platform API and AI service endpoints are configured by the extension and do not require manual URLs or separate broker credentials.
+You can use **Test API** and **Test Chat** to validate the credentials. The API token is stored using Windows user-level data protection.
 
 ---
 
