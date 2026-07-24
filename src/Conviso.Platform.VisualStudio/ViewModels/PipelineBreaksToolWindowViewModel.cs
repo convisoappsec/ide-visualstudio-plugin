@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using Conviso.Platform.VisualStudio.Infrastructure;
 using Conviso.Platform.VisualStudio.Models;
 using Conviso.Platform.VisualStudio.Services.Platform;
@@ -19,20 +21,41 @@ internal sealed class PipelineBreaksToolWindowViewModel : ObservableObject
     private string detailAssetName = string.Empty;
     private string detailReasonText = string.Empty;
     private string detailCommandStatus = "Select a pipeline break";
+    private string itemFilter = string.Empty;
 
     public PipelineBreaksToolWindowViewModel(IPlatformFacade platformFacade)
     {
         this.platformFacade = platformFacade;
         Items = new ObservableCollection<PipelineBreakSummary>();
+        ItemsView = CollectionViewSource.GetDefaultView(Items);
+        ItemsView.Filter = FilterItem;
         RefreshCommand = new AsyncDelegateCommand(RefreshAsync);
     }
 
     public ObservableCollection<PipelineBreakSummary> Items { get; }
 
+    public ICollectionView ItemsView { get; }
+
     public string Status
     {
         get => status;
         set => SetProperty(ref status, value);
+    }
+
+    public string ItemFilter
+    {
+        get => itemFilter;
+        set
+        {
+            if (SetProperty(ref itemFilter, value))
+            {
+                ItemsView.Refresh();
+                if (SelectedItem != null && !ItemsView.Contains(SelectedItem))
+                {
+                    SelectedItem = null;
+                }
+            }
+        }
     }
 
     public PipelineBreakSummary? SelectedItem
@@ -122,6 +145,16 @@ internal sealed class PipelineBreaksToolWindowViewModel : ObservableObject
         DetailAssetName = string.Empty;
         DetailReasonText = string.Empty;
         DetailCommandStatus = "Select a pipeline break";
+    }
+
+    private bool FilterItem(object item)
+    {
+        if (item is not PipelineBreakSummary pipelineBreak || string.IsNullOrWhiteSpace(ItemFilter))
+        {
+            return true;
+        }
+
+        return (pipelineBreak.AssetName ?? string.Empty).IndexOf(ItemFilter.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }
 }

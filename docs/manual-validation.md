@@ -103,17 +103,21 @@ Expected result:
 
 1. Open `Tools > Conviso Vulnerabilities`.
 2. Confirm that data uses the company configured in `Conviso Settings > Scope`.
-3. Change the asset filter.
-4. Click `Refresh`.
-5. Select a vulnerability row.
-6. Review the details panel.
-7. Click `Generate Fix`.
-8. Enter a new status and click `Update Status`.
+3. Type part of a vulnerability title in `Filter by title...`.
+4. Confirm results change on each keystroke without a loading request.
+5. Clear the text filter and confirm all loaded vulnerabilities return.
+6. Change the asset filter.
+7. Click `Refresh`.
+8. Select a vulnerability row.
+9. Review the details panel.
+10. Click `Generate Fix`.
+11. Enter a new status and click `Update Status`.
 
 Expected result:
 
 - list loads without UI crashes
 - the title is the first column and horizontal scrolling is available when columns overflow
+- title filtering is case-insensitive, supports no-match results, and does not discard loaded items
 - filters do not break the view
 - selecting a row loads details
 - generate-fix returns a meaningful result or a clear backend error
@@ -123,18 +127,22 @@ Expected result:
 
 1. Open `Tools > Conviso Requirements`.
 2. Click `Refresh`.
-3. Select a project.
-4. Verify project details load.
-5. Select a requirement.
-6. Verify requirement details and activities load.
-7. Select an activity.
-8. Change project status and click `Update Project`.
-9. Change activity status and click `Update Activity`.
+3. Filter projects by label, then clear the filter.
+4. Select a project.
+5. Verify project details load.
+6. Filter requirements by label, then clear the filter.
+7. Select a requirement.
+8. Verify requirement details and activities load.
+9. Filter activities by title, then clear the filter.
+10. Select an activity.
+11. Change project status and click `Update Project`.
+12. Change activity status and click `Update Activity`.
 
 Expected result:
 
 - projects load
 - project, requirement, and activity lists show horizontal scrollbars when their columns overflow
+- each text filter updates only its local loaded list and preserves the full list when cleared
 - selecting a project populates requirements
 - selecting a requirement populates activities
 - detail sidebars update correctly
@@ -144,12 +152,14 @@ Expected result:
 
 1. Open `Tools > Conviso Pipeline Breaks`.
 2. Click `Refresh`.
-3. Select an item.
+3. Filter the list by part of an asset name, then clear the filter.
+4. Select an item.
 
 Expected result:
 
 - list loads
 - the list shows a horizontal scrollbar when its columns overflow
+- asset filtering updates immediately without an additional API request
 - selecting a row loads execution details
 - empty-state or setup-state messages remain readable
 

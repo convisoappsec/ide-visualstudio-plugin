@@ -24,18 +24,28 @@
             </Grid.ColumnDefinitions>
 
             <GroupBox Grid.Column="0" Header="Projects">
-                <DataGrid
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,8">
+                        <TextBox Text="{Binding ProjectFilter, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Margin="6,4,0,0" VerticalAlignment="Top" IsHitTestVisible="False" Foreground="Gray" Text="Filter by project...">
+                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding ProjectFilter}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <DataGrid
+                    Grid.Row="1"
                     AutoGenerateColumns="False"
                     IsReadOnly="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                    ItemsSource="{Binding Projects}"
+                    ItemsSource="{Binding ProjectsView}"
                     SelectedItem="{Binding SelectedProject, Mode=TwoWay}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="240" />
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110" />
                         <DataGridTextColumn Header="Type" Binding="{Binding ProjectTypeLabel}" Width="120" />
                     </DataGrid.Columns>
-                </DataGrid>
+                    </DataGrid>
+                </Grid>
             </GroupBox>
 
             <Grid Grid.Column="2">
@@ -46,32 +56,52 @@
                 </Grid.RowDefinitions>
 
                 <GroupBox Header="Requirements">
-                    <DataGrid
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,8">
+                            <TextBox Text="{Binding RequirementFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Margin="6,4,0,0" VerticalAlignment="Top" IsHitTestVisible="False" Foreground="Gray" Text="Filter by requirement...">
+                                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding RequirementFilter}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <DataGrid
+                        Grid.Row="1"
                         AutoGenerateColumns="False"
                         IsReadOnly="True"
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                        ItemsSource="{Binding Requirements}"
+                        ItemsSource="{Binding RequirementsView}"
                         SelectedItem="{Binding SelectedRequirement, Mode=TwoWay}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="240" />
                             <DataGridTextColumn Header="Checklist" Binding="{Binding ChecklistTypeLabel}" Width="140" />
                         </DataGrid.Columns>
-                    </DataGrid>
+                        </DataGrid>
+                    </Grid>
                 </GroupBox>
 
                 <GroupBox Grid.Row="2" Header="Activities">
-                    <DataGrid
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Grid Margin="0,0,0,8">
+                            <TextBox Text="{Binding ActivityFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Margin="6,4,0,0" VerticalAlignment="Top" IsHitTestVisible="False" Foreground="Gray" Text="Filter by activity...">
+                                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding ActivityFilter}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <DataGrid
+                        Grid.Row="1"
                         AutoGenerateColumns="False"
                         IsReadOnly="True"
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                        ItemsSource="{Binding Activities}"
+                        ItemsSource="{Binding ActivitiesView}"
                         SelectedItem="{Binding SelectedActivity, Mode=TwoWay}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="240" />
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110" />
                             <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt}" Width="140" />
                         </DataGrid.Columns>
-                    </DataGrid>
+                        </DataGrid>
+                    </Grid>
                 </GroupBox>
             </Grid>
 

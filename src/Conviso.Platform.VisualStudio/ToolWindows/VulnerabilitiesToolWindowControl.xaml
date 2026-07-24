@@ -26,13 +26,19 @@
             </Button>
             <TextBlock Margin="4,4,0,8" Style="{StaticResource StatusText}" Text="{Binding Status}" />
         </WrapPanel>
-        <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="3*" MinHeight="120"/><RowDefinition Height="8"/><RowDefinition Height="2*" MinHeight="180"/></Grid.RowDefinitions>
+        <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="3*" MinHeight="120"/><RowDefinition Height="8"/><RowDefinition Height="2*" MinHeight="180"/></Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <TextBox Text="{Binding ItemFilter, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Margin="6,4,0,0" VerticalAlignment="Top" IsHitTestVisible="False" Foreground="Gray" Text="Filter by title...">
+                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding ItemFilter}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+            </TextBlock>
+        </Grid>
         <DataGrid
-            Grid.Row="0"
+            Grid.Row="1"
             AutoGenerateColumns="False"
             IsReadOnly="True"
             ScrollViewer.HorizontalScrollBarVisibility="Auto"
-            ItemsSource="{Binding Items}"
+            ItemsSource="{Binding ItemsView}"
             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="320" />
@@ -42,8 +48,8 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-        <Border Grid.Row="2" Style="{StaticResource Card}" DataContext="{Binding Details}">
+        <GridSplitter Grid.Row="2" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+        <Border Grid.Row="3" Style="{StaticResource Card}" DataContext="{Binding Details}">
             <ScrollViewer
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">

@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using Conviso.Platform.VisualStudio.Configuration;
 using Conviso.Platform.VisualStudio.Infrastructure;
 using Conviso.Platform.VisualStudio.Models;
@@ -19,6 +21,7 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
     private AssetOption? selectedAsset;
     private VulnerabilitySummary? selectedItem;
     private string status = "Ready";
+    private string itemFilter = string.Empty;
 
     public VulnerabilitiesToolWindowViewModel(
         IPlatformFacade platformFacade,
@@ -29,12 +32,16 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         this.settingsService = settingsService;
         this.brokerClient = brokerClient;
         Items = new ObservableCollection<VulnerabilitySummary>();
+        ItemsView = CollectionViewSource.GetDefaultView(Items);
+        ItemsView.Filter = FilterItem;
         Assets = new ObservableCollection<AssetOption>();
         Details = new VulnerabilityDetailsViewModel(platformFacade, settingsService, brokerClient);
         RefreshCommand = new AsyncDelegateCommand(RefreshAsync);
     }
 
     public ObservableCollection<VulnerabilitySummary> Items { get; }
+
+    public ICollectionView ItemsView { get; }
 
     public ObservableCollection<AssetOption> Assets { get; }
 
@@ -101,6 +108,22 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         return LoadFilterOptionsAsync();
     }
 
+    public string ItemFilter
+    {
+        get => itemFilter;
+        set
+        {
+            if (SetProperty(ref itemFilter, value))
+            {
+                ItemsView.Refresh();
+                if (SelectedItem != null && !ItemsView.Contains(SelectedItem))
+                {
+                    SelectedItem = null;
+                }
+            }
+        }
+    }
+
     private async Task LoadDetailsSafelyAsync(VulnerabilitySummary? item)
     {
         try
@@ -144,6 +167,16 @@ internal sealed class VulnerabilitiesToolWindowViewModel : ObservableObject
         {
             // Keep the "All assets" option even if asset loading fails.
         }
+    }
+
+    private bool FilterItem(object item)
+    {
+        if (item is not VulnerabilitySummary vulnerability || string.IsNullOrWhiteSpace(ItemFilter))
+        {
+            return true;
+        }
+
+        return (vulnerability.Title ?? string.Empty).IndexOf(ItemFilter.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
 }

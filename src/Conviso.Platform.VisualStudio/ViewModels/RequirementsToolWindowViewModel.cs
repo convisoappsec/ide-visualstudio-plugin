@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using Conviso.Platform.VisualStudio.Infrastructure;
 using Conviso.Platform.VisualStudio.Models;
 using Conviso.Platform.VisualStudio.Services.Platform;
@@ -35,6 +37,9 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
     private string activityUpdatedAt = string.Empty;
     private string newActivityStatus = string.Empty;
     private string activityCommandStatus = "Select an activity";
+    private string projectFilter = string.Empty;
+    private string requirementFilter = string.Empty;
+    private string activityFilter = string.Empty;
 
     public RequirementsToolWindowViewModel(IPlatformFacade platformFacade)
     {
@@ -42,6 +47,12 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         Projects = new ObservableCollection<ProjectSummary>();
         Requirements = new ObservableCollection<RequirementSummary>();
         Activities = new ObservableCollection<ProjectActivitySummary>();
+        ProjectsView = CollectionViewSource.GetDefaultView(Projects);
+        RequirementsView = CollectionViewSource.GetDefaultView(Requirements);
+        ActivitiesView = CollectionViewSource.GetDefaultView(Activities);
+        ProjectsView.Filter = FilterProject;
+        RequirementsView.Filter = FilterRequirement;
+        ActivitiesView.Filter = FilterActivity;
         RefreshCommand = new AsyncDelegateCommand(RefreshAsync);
         UpdateProjectStatusCommand = new AsyncDelegateCommand(UpdateProjectStatusAsync, () => selectedProject != null && !string.IsNullOrWhiteSpace(NewProjectStatus));
         UpdateActivityStatusCommand = new AsyncDelegateCommand(UpdateActivityStatusAsync, () => selectedActivity != null && !string.IsNullOrWhiteSpace(NewActivityStatus));
@@ -52,6 +63,12 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
     public ObservableCollection<RequirementSummary> Requirements { get; }
 
     public ObservableCollection<ProjectActivitySummary> Activities { get; }
+
+    public ICollectionView ProjectsView { get; }
+
+    public ICollectionView RequirementsView { get; }
+
+    public ICollectionView ActivitiesView { get; }
 
     public string Status
     {
@@ -174,6 +191,54 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
             ProjectCommandStatus = "Unable to load project: " + error.Message;
             Status = ProjectCommandStatus;
             DiagnosticsLogger.LogError("Unable to load project: " + error);
+        }
+    }
+
+    public string ProjectFilter
+    {
+        get => projectFilter;
+        set
+        {
+            if (SetProperty(ref projectFilter, value))
+            {
+                ProjectsView.Refresh();
+                if (SelectedProject != null && !ProjectsView.Contains(SelectedProject))
+                {
+                    SelectedProject = null;
+                }
+            }
+        }
+    }
+
+    public string RequirementFilter
+    {
+        get => requirementFilter;
+        set
+        {
+            if (SetProperty(ref requirementFilter, value))
+            {
+                RequirementsView.Refresh();
+                if (SelectedRequirement != null && !RequirementsView.Contains(SelectedRequirement))
+                {
+                    SelectedRequirement = null;
+                }
+            }
+        }
+    }
+
+    public string ActivityFilter
+    {
+        get => activityFilter;
+        set
+        {
+            if (SetProperty(ref activityFilter, value))
+            {
+                ActivitiesView.Refresh();
+                if (SelectedActivity != null && !ActivitiesView.Contains(SelectedActivity))
+                {
+                    SelectedActivity = null;
+                }
+            }
         }
     }
 
@@ -372,6 +437,27 @@ internal sealed class RequirementsToolWindowViewModel : ObservableObject
         ActivityUpdatedAt = string.Empty;
         NewActivityStatus = string.Empty;
         ActivityCommandStatus = "Select an activity";
+    }
+
+    private bool FilterProject(object item)
+    {
+        return item is not ProjectSummary project ||
+               string.IsNullOrWhiteSpace(ProjectFilter) ||
+               (project.Label ?? string.Empty).IndexOf(ProjectFilter.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private bool FilterRequirement(object item)
+    {
+        return item is not RequirementSummary requirement ||
+               string.IsNullOrWhiteSpace(RequirementFilter) ||
+               (requirement.Label ?? string.Empty).IndexOf(RequirementFilter.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private bool FilterActivity(object item)
+    {
+        return item is not ProjectActivitySummary activity ||
+               string.IsNullOrWhiteSpace(ActivityFilter) ||
+               (activity.Title ?? string.Empty).IndexOf(ActivityFilter.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }
 }
