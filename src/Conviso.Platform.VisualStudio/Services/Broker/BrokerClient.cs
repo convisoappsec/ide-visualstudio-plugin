@@ -15,16 +15,18 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
         private ClientWebSocket? socket;
         private CancellationTokenSource? receiveLoopCancellation;
         private TaskCompletionSource<bool>? authenticationCompletionSource;
+        private volatile bool isAuthenticated;
         private readonly object exclusiveRequestsLock = new object();
         private readonly HashSet<string> exclusiveRequestIds = new HashSet<string>(StringComparer.Ordinal);
         private event Action<BrokerEvent>? InternalEventReceived;
 
         public event Action<BrokerEvent>? EventReceived;
 
-        public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
+        public bool IsConnected => isAuthenticated && socket != null && socket.State == WebSocketState.Open;
 
         public async Task ConnectAsync(BrokerConnectionOptions options, CancellationToken cancellationToken)
         {
+            isAuthenticated = false;
             await DisconnectAsync(cancellationToken);
 
             socket = new ClientWebSocket();
@@ -35,7 +37,8 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                 throw new InvalidOperationException("Missing chat API key.");
             }
 
-            authenticationCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var authenticationCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            authenticationCompletionSource = authenticationCompletion;
 
             await socket.ConnectAsync(new Uri(endpoint), cancellationToken);
             receiveLoopCancellation = new CancellationTokenSource();
@@ -47,7 +50,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
             string authRequestId = CreateRequestId("auth");
             await SendMessageAsync(
-                socket,
+                activeSocket,
                 new
                 {
                     type = "auth",
@@ -64,11 +67,11 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                 cancellationToken,
                 timeoutCancellation.Token);
 
-            using (linkedCancellation.Token.Register(() => authenticationCompletionSource.TrySetCanceled(), useSynchronizationContext: false))
+            using (linkedCancellation.Token.Register(() => authenticationCompletion.TrySetCanceled(), useSynchronizationContext: false))
             {
                 try
                 {
-                    await authenticationCompletionSource.Task;
+                    await authenticationCompletion.Task;
                 }
                 catch (TaskCanceledException) when (timeoutCancellation.IsCancellationRequested)
                 {
@@ -83,14 +86,11 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
         public async Task<string> SendChatMessageAsync(ChatMessage message, CancellationToken cancellationToken)
         {
-            if (socket == null || socket.State != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("Broker is not connected.");
-            }
+            ClientWebSocket activeSocket = GetAuthenticatedSocket();
 
             string requestId = CreateRequestId("req");
             await SendMessageAsync(
-                socket,
+                activeSocket,
                 new
                 {
                     type = "analyze_code",
@@ -107,10 +107,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
         public async Task<AutoFixResult> RequestAutoFixAsync(string findingId, CancellationToken cancellationToken)
         {
-            if (socket == null || socket.State != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("Broker is not connected.");
-            }
+            ClientWebSocket activeSocket = GetAuthenticatedSocket();
 
             if (string.IsNullOrWhiteSpace(findingId))
             {
@@ -153,7 +150,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             try
             {
                 await SendMessageAsync(
-                    socket,
+                    activeSocket,
                     new
                     {
                         type = "analyze_code",
@@ -223,10 +220,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
         public async Task UpdateExtractorAcceptedAsync(int extractorId, CancellationToken cancellationToken)
         {
-            if (socket == null || socket.State != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("Broker is not connected.");
-            }
+            ClientWebSocket activeSocket = GetAuthenticatedSocket();
 
             if (extractorId <= 0)
             {
@@ -263,7 +257,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             try
             {
                 await SendMessageAsync(
-                    socket,
+                    activeSocket,
                     new
                     {
                         type = "update_extractor",
@@ -302,6 +296,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
         {
+            isAuthenticated = false;
             authenticationCompletionSource?.TrySetCanceled();
             authenticationCompletionSource = null;
             receiveLoopCancellation?.Cancel();
@@ -352,6 +347,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                     result = await activeSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
+                        isAuthenticated = false;
                         authenticationCompletionSource?.TrySetException(
                             new InvalidOperationException("Chat connection closed before authentication completed."));
                         return;
@@ -377,6 +373,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             }
             catch (Exception error)
             {
+                isAuthenticated = false;
                 authenticationCompletionSource?.TrySetException(error);
                 Infrastructure.DiagnosticsLogger.LogError("Chat receive loop stopped: " + error);
             }
@@ -390,11 +387,13 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             {
                 if (brokerEvent.Status == "success")
                 {
+                    isAuthenticated = true;
                     authenticationCompletionSource?.TrySetResult(true);
                     authenticationCompletionSource = null;
                 }
                 else
                 {
+                    isAuthenticated = false;
                     authenticationCompletionSource?.TrySetException(
                         new InvalidOperationException(string.IsNullOrWhiteSpace(brokerEvent.Content)
                             ? "Chat authentication failed."
@@ -407,12 +406,22 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
 
             if (brokerEvent.Type == "auth_error")
             {
+                isAuthenticated = false;
                 authenticationCompletionSource?.TrySetException(
                     new InvalidOperationException(string.IsNullOrWhiteSpace(brokerEvent.Content)
                         ? "Chat authentication failed."
                         : brokerEvent.Content));
                 authenticationCompletionSource = null;
                 return;
+            }
+
+            if ((brokerEvent.Type == "error" || brokerEvent.Type == "analysis_error") &&
+                IsAuthenticationFailure(brokerEvent.Content))
+            {
+                // The server can keep the socket open after the authenticated session
+                // expires. Mark it unusable so the next operation performs a full
+                // reconnect and authentication handshake.
+                isAuthenticated = false;
             }
 
             InternalEventReceived?.Invoke(brokerEvent);
@@ -493,6 +502,37 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             }
 
             return new BrokerEvent(type, requestId, content, raw, status);
+        }
+
+        private static bool IsAuthenticationFailure(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return false;
+            }
+
+            bool mentionsPortugueseAuthentication =
+                (message.IndexOf("conex", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 message.IndexOf("connection", StringComparison.OrdinalIgnoreCase) >= 0) &&
+                message.IndexOf("autenticad", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            return message.IndexOf("not authenticated", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   message.IndexOf("unauthenticated", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   message.IndexOf("authentication required", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   message.IndexOf("unauthorized", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   message.IndexOf("nao autentic", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   mentionsPortugueseAuthentication;
+        }
+
+        private ClientWebSocket GetAuthenticatedSocket()
+        {
+            ClientWebSocket? activeSocket = socket;
+            if (!isAuthenticated || activeSocket == null || activeSocket.State != WebSocketState.Open)
+            {
+                throw new InvalidOperationException("Broker is not authenticated.");
+            }
+
+            return activeSocket;
         }
 
         private static async Task SendMessageAsync(
