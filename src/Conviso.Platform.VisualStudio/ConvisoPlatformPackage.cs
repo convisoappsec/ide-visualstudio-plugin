@@ -38,7 +38,7 @@ namespace Conviso.Platform.VisualStudio
             var settingsService = new SettingsService(this);
             var apiClient = new PlatformApiClient(settingsService);
             var platformFacade = new PlatformFacade(apiClient, settingsService);
-            var brokerClient = new BrokerClient();
+            var brokerClient = new BrokerClient(settingsService);
             var editorContextService = new EditorContextService(this);
             var patchService = new DocumentPatchService(this);
             ToolWindowContext = new ToolWindowContext(settingsService, platformFacade, brokerClient, editorContextService, patchService);

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Conviso.Platform.VisualStudio.Configuration;
 using Conviso.Platform.VisualStudio.Models;
 
 namespace Conviso.Platform.VisualStudio.Services.Broker
@@ -12,6 +13,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
     internal sealed class BrokerClient : IBrokerClient
     {
         private const int ConnectTimeoutMilliseconds = 15000;
+        private readonly ISettingsService settingsService;
         private ClientWebSocket? socket;
         private CancellationTokenSource? receiveLoopCancellation;
         private TaskCompletionSource<bool>? authenticationCompletionSource;
@@ -21,6 +23,11 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
         private event Action<BrokerEvent>? InternalEventReceived;
 
         public event Action<BrokerEvent>? EventReceived;
+
+        public BrokerClient(ISettingsService settingsService)
+        {
+            this.settingsService = settingsService;
+        }
 
         public bool IsConnected => isAuthenticated && socket != null && socket.State == WebSocketState.Open;
 
@@ -99,6 +106,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                     {
                         code = message.Content,
                         language = string.IsNullOrWhiteSpace(message.Language) ? "text" : message.Language,
+                        company_id = GetCompanyId(),
                     },
                 },
                 cancellationToken);
@@ -163,6 +171,7 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
                                 "Explain the risk and provide the corrected code in a fenced code block when possible.",
                                 "Vulnerability ID: " + findingId),
                             language = "text",
+                            company_id = GetCompanyId(),
                         },
                     },
                     cancellationToken);
@@ -533,6 +542,17 @@ namespace Conviso.Platform.VisualStudio.Services.Broker
             }
 
             return activeSocket;
+        }
+
+        private int GetCompanyId()
+        {
+            string companyId = settingsService.GetString(ConvisoOptions.CompanyIdKey, string.Empty);
+            if (!int.TryParse(companyId, out int numericCompanyId))
+            {
+                throw new InvalidOperationException("Configure a valid numeric Company ID before analyzing code.");
+            }
+
+            return numericCompanyId;
         }
 
         private static async Task SendMessageAsync(
