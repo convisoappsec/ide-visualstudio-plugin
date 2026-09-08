@@ -129,7 +129,7 @@ namespace Conviso.Platform.VisualStudio.ViewModels
 
         private async Task TestBrokerAsync()
         {
-            var brokerClient = new BrokerClient();
+            var brokerClient = new BrokerClient(settingsService);
             try
             {
                 Status = "Testing broker...";
